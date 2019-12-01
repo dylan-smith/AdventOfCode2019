@@ -13,10 +13,9 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            var modules = input.Doubles();
             var total = 0.0;
 
-            foreach (var m in modules)
+            foreach (var m in input.Doubles())
             {
                 var fuel = Math.Floor((double)m / 3.0) - 2;
                 total += fuel;
