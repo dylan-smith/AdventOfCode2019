@@ -626,6 +626,28 @@ namespace AdventOfCode
             }
         }
 
+        public static void SafeSet<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key] = value;
+            }
+            else
+            {
+                dict.Add(key, value);
+            }
+        }
+
+        public static bool SafeCompare<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+        {
+            if (dict.ContainsKey(key))
+            {
+                return dict[key].Equals(value);
+            }
+
+            return false;
+        }
+
         public static void ForEach<T>(this IEnumerable<T> list, Action<T> action)
         {
             list.ToList().ForEach(action);
