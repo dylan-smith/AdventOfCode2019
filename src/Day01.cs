@@ -12,18 +12,20 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            return input.Doubles().Sum(m =>
+            return input.Doubles().Sum(m => CalcFuelForModule(m)).ToString();
+        }
+
+        private static double CalcFuelForModule(double m)
+        {
+            var total = 0.0;
+
+            while (m > 0)
             {
-                var total = 0.0;
+                m = Math.Floor(m / 3) - 2;
+                total += m > 0 ? m : 0;
+            }
 
-                while (m > 0)
-                {
-                    m = Math.Floor(m / 3) - 2;
-                    total += m > 0 ? m : 0;
-                }
-
-                return total;
-            }).ToString();
+            return total;
         }
     }
 }
