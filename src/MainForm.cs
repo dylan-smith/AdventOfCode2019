@@ -41,7 +41,7 @@ namespace AdventOfCode
                 return InputTextBox.Text;
             }
 
-            var inputFolder = @"C:\Git\AdventOfCode2018\input\";
+            var inputFolder = @"C:\Git\AdventOfCode2019\input\";
             var inputFileName = $"{day.ToString()}.txt";
             var inputFile = Path.Combine(inputFolder, inputFileName);
 
@@ -55,7 +55,7 @@ namespace AdventOfCode
 
         private void DownloadInput(int day, string inputFile)
         {
-            var url = $"https://adventofcode.com/2018/day/{day.ToString()}/input";
+            var url = $"https://adventofcode.com/2019/day/{day.ToString()}/input";
             var sessionCookie = File.ReadAllText(@"C:\AoC\AoCSessionCookie.txt");
 
             using (var client = new WebClient())
