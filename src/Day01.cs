@@ -12,21 +12,18 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            var total = 0.0;
-
-            foreach (var m in input.Doubles())
+            return input.Doubles().Sum(m =>
             {
-                var fuel = Math.Floor(m / 3) - 2;
-                total += fuel;
+                var total = 0.0;
 
-                while (fuel > 0)
+                while (m > 0)
                 {
-                    fuel = Math.Floor(fuel / 3) - 2;
-                    total += fuel > 0 ? fuel : 0;
+                    m = Math.Floor(m / 3) - 2;
+                    total += m > 0 ? m : 0;
                 }
-            }
 
-            return total.ToString();
+                return total;
+            }).ToString();
         }
     }
 }
