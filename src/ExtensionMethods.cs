@@ -977,6 +977,24 @@ namespace AdventOfCode
         }
     }
 
+    public static class NumericExtensions
+    {
+        public static bool IsPrime(this int number)
+        {
+            var sqrt = Math.Floor(Math.Sqrt((double)number));
+
+            for (var x = 2; x <= sqrt; x++)
+            {
+                if (number % x == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
     public class Point3D : IEquatable<Point3D>
     {
         public long X { get; set; }
