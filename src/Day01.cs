@@ -7,7 +7,7 @@ namespace AdventOfCode
     {
         public static string PartOne(string input)
         {
-            return input.Doubles().Sum(x => Math.Floor(x / 3.0) - 2).ToString();
+            return input.Doubles().Sum(x => Math.Floor(x / 3) - 2).ToString();
         }
 
         public static string PartTwo(string input)
@@ -16,7 +16,7 @@ namespace AdventOfCode
 
             foreach (var m in input.Doubles())
             {
-                var fuel = Math.Floor((double)m / 3.0) - 2;
+                var fuel = Math.Floor(m / 3) - 2;
                 total += fuel;
 
                 while (fuel > 0)
