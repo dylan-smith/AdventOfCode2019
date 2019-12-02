@@ -23,23 +23,20 @@ namespace AdventOfCode
             while (program[ipc] != 99)
             {
                 var op = program[ipc];
+                var a = program[program[ipc + 1]];
+                var b = program[program[ipc + 2]];
+                var c = program[ipc + 3];
 
-                if (op == 1)
+                switch (op)
                 {
-                    var a = program[program[ipc + 1]];
-                    var b = program[program[ipc + 2]];
-                    var c = program[ipc + 3];
-
-                    program[c] = a + b;
-                }
-
-                if (op == 2)
-                {
-                    var a = program[program[ipc + 1]];
-                    var b = program[program[ipc + 2]];
-                    var c = program[ipc + 3];
-
-                    program[c] = a * b;
+                    case 1:
+                        program[c] = a + b;
+                        break;
+                    case 2:
+                        program[c] = a * b;
+                        break;
+                    default:
+                        throw new Exception($"Invalid op code [{op}]");
                 }
 
                 ipc += 4;
