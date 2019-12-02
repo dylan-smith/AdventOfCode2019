@@ -58,9 +58,7 @@ namespace AdventOfCode
                     program[1] = noun;
                     program[2] = verb;
 
-                    RunProgram(program);
-
-                    if (program[0] == 19690720)
+                    if (RunProgram(program) == 19690720)
                     {
                         return (100 * noun + verb).ToString();
                     }
