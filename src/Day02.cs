@@ -8,64 +8,86 @@ namespace AdventOfCode
     {
         public static string PartOne(string input)
         {
-            var program = input.Integers().ToList();
+            var vm = new IntCodeVM(input);
 
-            program[1] = 12;
-            program[2] = 2;
+            vm.SetMemory(1, 12);
+            vm.SetMemory(2, 2);
 
-            return RunProgram(program).ToString();
-        }
-
-        private static int RunProgram(List<int> program)
-        {
-            var ipc = 0;
-
-            while (program[ipc] != 99)
-            {
-                var op = program[ipc];
-                var a = program[program[ipc + 1]];
-                var b = program[program[ipc + 2]];
-                var c = program[ipc + 3];
-
-                switch (op)
-                {
-                    case 1:
-                        program[c] = a + b;
-                        break;
-                    case 2:
-                        program[c] = a * b;
-                        break;
-                    default:
-                        throw new Exception($"Invalid op code [{op}]");
-                }
-
-                ipc += 4;
-            }
-
-            return program[0];
+            return vm.Run().ToString();
         }
 
         public static string PartTwo(string input)
         {
-            var backup = input.Integers().ToList();
+            var vm = new IntCodeVM(input);
 
             for (var noun = 0; noun <= 99; noun++)
             {
                 for (var verb = 0; verb <= 99; verb++)
                 {
-                    var program = backup.Select(b => b).ToList();
+                    vm.SetMemory(1, noun);
+                    vm.SetMemory(2, verb);
 
-                    program[1] = noun;
-                    program[2] = verb;
-
-                    if (RunProgram(program) == 19690720)
+                    if (vm.Run() == 19690720)
                     {
                         return (100 * noun + verb).ToString();
                     }
+
+                    vm.Reset();
                 }
             }
 
             throw new Exception();
+        }
+
+        public class IntCodeVM
+        {
+            private readonly List<int> _instructions;
+            private List<int> _memory;
+            private int _ip = 0;
+
+            public IntCodeVM(string program)
+            {
+                _instructions = program.Integers().ToList();
+                _memory = _instructions.Select(x => x).ToList();
+            }
+
+            public void Reset()
+            {
+                _memory = _instructions.Select(x => x).ToList();
+                _ip = 0;
+            }
+
+            public void SetMemory(int address, int value)
+            {
+                _memory[address] = value;
+            }
+
+            public int Run()
+            {
+                while (_memory[_ip] != 99)
+                {
+                    var op = _memory[_ip];
+                    var a = _memory[_memory[_ip + 1]];
+                    var b = _memory[_memory[_ip + 2]];
+                    var c = _memory[_ip + 3];
+
+                    switch (op)
+                    {
+                        case 1:
+                            _memory[c] = a + b;
+                            break;
+                        case 2:
+                            _memory[c] = a * b;
+                            break;
+                        default:
+                            throw new Exception($"Invalid op code [{op}]");
+                    }
+
+                    _ip += 4;
+                }
+
+                return _memory[0];
+            }
         }
     }
 }
