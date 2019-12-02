@@ -49,20 +49,20 @@ namespace AdventOfCode
         {
             var backup = input.Integers().ToList();
 
-            for (var x = 0; x <= 99; x++)
+            for (var noun = 0; noun <= 99; noun++)
             {
-                for (var y = 0; y <= 99; y++)
+                for (var verb = 0; verb <= 99; verb++)
                 {
                     var program = backup.Select(b => b).ToList();
 
-                    program[1] = x;
-                    program[2] = y;
+                    program[1] = noun;
+                    program[2] = verb;
 
                     RunProgram(program);
 
                     if (program[0] == 19690720)
                     {
-                        return (100 * x + y).ToString();
+                        return (100 * noun + verb).ToString();
                     }
                 }
             }
