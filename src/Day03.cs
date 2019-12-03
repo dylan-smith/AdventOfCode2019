@@ -15,24 +15,29 @@ namespace AdventOfCode
             var aPoints = TraceWire(aPath);
             var bPoints = TraceWire(bPath);
 
-            var intersections = aPoints.Where(a => bPoints.Contains(a));
+            var intersections = aPoints.Where(a => bPoints.ContainsKey(a.Key));
 
-
-            return intersections.Min(i => i.ManhattanDistance()).ToString();
+            return intersections.Min(i => i.Key.ManhattanDistance()).ToString();
         }
 
-        public static HashSet<Point> TraceWire(List<(Direction dir, int length)> path)
+        public static Dictionary<Point, int> TraceWire(List<(Direction dir, int length)> path)
         {
-            var result = new HashSet<Point>();
+            var result = new Dictionary<Point, int>();
 
             var pos = new Point(0, 0);
+            var steps = 0;
 
             foreach (var p in path)
             {
                 for (var i = 0; i < p.length; i++)
                 {
                     pos = pos.Move(p.dir);
-                    result.Add(pos);
+                    steps++;
+
+                    if (!result.ContainsKey(pos))
+                    {
+                        result.Add(pos, steps);
+                    }
                 }
             }
 
@@ -66,7 +71,15 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            return "";
+            var aPath = input.Lines().First().Words().Select(x => ParseWireDirection(x)).ToList();
+            var bPath = input.Lines().Last().Words().Select(x => ParseWireDirection(x)).ToList();
+
+            var aPoints = TraceWire(aPath);
+            var bPoints = TraceWire(bPath);
+
+            var intersections = aPoints.Where(a => bPoints.ContainsKey(a.Key));
+
+            return intersections.Min(i => i.Value + bPoints[i.Key]).ToString();
         }
     }
 }
