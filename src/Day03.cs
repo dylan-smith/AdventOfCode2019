@@ -44,7 +44,7 @@ namespace AdventOfCode
             return result;
         }
 
-        public static (Direction dir, int length) ParseWireDirection(string input)
+        public static (Direction dir, int length) ParseWirePath(string input)
         {
             var dir = Direction.Up;
 
