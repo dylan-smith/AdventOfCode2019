@@ -20,18 +20,18 @@ namespace AdventOfCode
             return intersections.Min(i => i.ManhattanDistance()).ToString();
         }
 
-        public static Dictionary<Point, int> TraceWire(List<(Direction dir, int length)> path)
+        public static Dictionary<Point, int> TraceWire(IEnumerable<(Direction dir, int length)> path)
         {
             var result = new Dictionary<Point, int>();
 
             var pos = new Point(0, 0);
             var steps = 0;
 
-            foreach (var p in path)
+            foreach (var (dir, length) in path)
             {
-                for (var i = 0; i < p.length; i++)
+                for (var i = 0; i < length; i++)
                 {
-                    pos = pos.Move(p.dir);
+                    pos = pos.Move(dir);
                     steps++;
 
                     if (!result.ContainsKey(pos))
