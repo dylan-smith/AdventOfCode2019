@@ -46,24 +46,7 @@ namespace AdventOfCode
 
         public static (Direction dir, int length) ParseWirePath(string input)
         {
-            var dir = Direction.Up;
-
-            switch (input[0])
-            {
-                case 'R':
-                    dir = Direction.Right;
-                    break;
-                case 'D':
-                    dir = Direction.Down;
-                    break;
-                case 'U':
-                    dir = Direction.Up;
-                    break;
-                case 'L':
-                    dir = Direction.Left;
-                    break;
-            }
-
+            var dir = input[0].ToDirection();
             var len = int.Parse(input.ShaveLeft(1));
 
             return (dir, len);

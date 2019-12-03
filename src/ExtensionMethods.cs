@@ -432,6 +432,40 @@ namespace AdventOfCode
             seventh = list.Count > 6 ? list[6] : default(T); // or throw
             eigth = list.Count > 7 ? list[7] : default(T); // or throw
         }
+
+        public static Direction ToDirection(this char c)
+        {
+            switch (c)
+            {
+                case 'R':
+                    return Direction.Right;
+                case 'D':
+                    return Direction.Down;
+                case 'U':
+                    return Direction.Up;
+                case 'L':
+                    return Direction.Left;
+            }
+
+            throw new ArgumentException($"Unrecognized character [{c}]");
+        }
+
+        public static Compass ToCompass(this char c)
+        {
+            switch (c)
+            {
+                case 'N':
+                    return Compass.North;
+                case 'S':
+                    return Compass.South;
+                case 'E':
+                    return Compass.East;
+                case 'W':
+                    return Compass.West;
+            }
+
+            throw new ArgumentException($"Unrecognized character [{c}]");
+        }
     }
 
     public static class CollectionExtensions
