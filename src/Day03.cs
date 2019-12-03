@@ -9,8 +9,8 @@ namespace AdventOfCode
     {
         public static string PartOne(string input)
         {
-            var aPath = input.Lines().First().Words().Select(x => ParseWireDirection(x)).ToList();
-            var bPath = input.Lines().Last().Words().Select(x => ParseWireDirection(x)).ToList();
+            var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
+            var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
 
             var aPoints = TraceWire(aPath);
             var bPoints = TraceWire(bPath);
@@ -71,8 +71,8 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            var aPath = input.Lines().First().Words().Select(x => ParseWireDirection(x)).ToList();
-            var bPath = input.Lines().Last().Words().Select(x => ParseWireDirection(x)).ToList();
+            var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
+            var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
 
             var aPoints = TraceWire(aPath);
             var bPoints = TraceWire(bPath);
