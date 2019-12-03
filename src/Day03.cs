@@ -7,79 +7,79 @@ namespace AdventOfCode
 {
     public class Day03
     {
-public static string PartOne(string input)
-{
-    var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
-    var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
-
-    var aPoints = TraceWire(aPath);
-    var bPoints = TraceWire(bPath);
-
-    var intersections = aPoints.Keys.Intersect(bPoints.Keys);
-
-    return intersections.Min(i => i.ManhattanDistance()).ToString();
-}
-
-public static Dictionary<Point, int> TraceWire(List<(Direction dir, int length)> path)
-{
-    var result = new Dictionary<Point, int>();
-
-    var pos = new Point(0, 0);
-    var steps = 0;
-
-    foreach (var p in path)
-    {
-        for (var i = 0; i < p.length; i++)
+        public static string PartOne(string input)
         {
-            pos = pos.Move(p.dir);
-            steps++;
+            var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
+            var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
 
-            if (!result.ContainsKey(pos))
-            {
-                result.Add(pos, steps);
-            }
+            var aPoints = TraceWire(aPath);
+            var bPoints = TraceWire(bPath);
+
+            var intersections = aPoints.Keys.Intersect(bPoints.Keys);
+
+            return intersections.Min(i => i.ManhattanDistance()).ToString();
         }
-    }
 
-    return result;
-}
+        public static Dictionary<Point, int> TraceWire(List<(Direction dir, int length)> path)
+        {
+            var result = new Dictionary<Point, int>();
 
-public static (Direction dir, int length) ParseWirePath(string input)
-{
-    var dir = Direction.Up;
+            var pos = new Point(0, 0);
+            var steps = 0;
 
-    switch (input[0])
-    {
-        case 'R':
-            dir = Direction.Right;
-            break;
-        case 'D':
-            dir = Direction.Down;
-            break;
-        case 'U':
-            dir = Direction.Up;
-            break;
-        case 'L':
-            dir = Direction.Left;
-            break;
-    }
+            foreach (var p in path)
+            {
+                for (var i = 0; i < p.length; i++)
+                {
+                    pos = pos.Move(p.dir);
+                    steps++;
 
-    var len = int.Parse(input.ShaveLeft(1));
+                    if (!result.ContainsKey(pos))
+                    {
+                        result.Add(pos, steps);
+                    }
+                }
+            }
 
-    return (dir, len);
-}
+            return result;
+        }
 
-public static string PartTwo(string input)
-{
-    var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
-    var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
+        public static (Direction dir, int length) ParseWirePath(string input)
+        {
+            var dir = Direction.Up;
 
-    var aPoints = TraceWire(aPath);
-    var bPoints = TraceWire(bPath);
+            switch (input[0])
+            {
+                case 'R':
+                    dir = Direction.Right;
+                    break;
+                case 'D':
+                    dir = Direction.Down;
+                    break;
+                case 'U':
+                    dir = Direction.Up;
+                    break;
+                case 'L':
+                    dir = Direction.Left;
+                    break;
+            }
 
-    var intersections = aPoints.Keys.Intersect(bPoints.Keys);
+            var len = int.Parse(input.ShaveLeft(1));
 
-    return intersections.Min(i => aPoints[i] + bPoints[i]).ToString();
-}
+            return (dir, len);
+        }
+
+        public static string PartTwo(string input)
+        {
+            var aPath = input.Lines().First().Words().Select(x => ParseWirePath(x)).ToList();
+            var bPath = input.Lines().Last().Words().Select(x => ParseWirePath(x)).ToList();
+
+            var aPoints = TraceWire(aPath);
+            var bPoints = TraceWire(bPath);
+
+            var intersections = aPoints.Keys.Intersect(bPoints.Keys);
+
+            return intersections.Min(i => aPoints[i] + bPoints[i]).ToString();
+        }
     }
 }
