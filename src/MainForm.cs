@@ -67,12 +67,12 @@ namespace AdventOfCode
 
         private void Day1AButton_Click(object sender, EventArgs e)
         {
-            ShowResult(x => Day01.PartOne(x), 1);
+            //ShowResult(x => Day01.PartOne(x), 1);
         }
 
         private void Day1BButton_Click(object sender, EventArgs e)
         {
-            ShowResult(x => Day01.PartTwo(x), 1);
+            //ShowResult(x => Day01.PartTwo(x), 1);
         }
 
         private void Day2AButton_Click(object sender, EventArgs e)
