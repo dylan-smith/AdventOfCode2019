@@ -12,7 +12,7 @@ namespace AdventOfCode
 
             for (var pwd = 138241; pwd <= 674034; pwd++)
             {
-                if (CheckPassword(pwd))
+                if (CheckAdjacent(pwd) && CheckIncreasingDigits(pwd))
                 {
                     valid.Add(pwd);
                 }
@@ -21,61 +21,71 @@ namespace AdventOfCode
             return valid.Count.ToString();
         }
 
-        //private static bool CheckPassword(int pwd)
-        //{
-        //    var text = pwd.ToString();
-        //    var prev = text[0];
-        //    var repeat = false;
-
-        //    for (var i = 1; i < text.Length; i++)
-        //    {
-        //        if (text[i] == prev)
-        //        {
-        //            repeat = true;
-        //        }
-
-        //        if (int.Parse(text[i].ToString()) < int.Parse(prev.ToString()))
-        //        {
-        //            return false;
-        //        }
-
-        //        prev = text[i];
-        //    }
-
-        //    return repeat;
-        //}
-
-        private static bool CheckPassword(int pwd)
+        private static bool CheckAdjacent(int pwd)
         {
             var text = pwd.ToString();
-
             var prev = text[0];
-            var repeat = false;
+            text = text.ShaveLeft(1);
 
-            for (var c = '0'; c <= '9'; c++)
+            foreach (var c in text)
             {
-                if (text.Contains($"{c.ToString()}{c.ToString()}") && !text.Contains($"{c.ToString()}{c.ToString()}{c.ToString()}"))
+                if (c == prev)
                 {
-                    repeat = true;
+                    return true;
                 }
+
+                prev = c;
             }
 
-            for (var i = 1; i < text.Length; i++)
+            return false;
+        }
+
+        private static bool CheckIncreasingDigits(int pwd)
+        {
+            var text = pwd.ToString();
+            var prev = text[0];
+
+            foreach (var c in text)
             {
-                if (int.Parse(text[i].ToString()) < int.Parse(prev.ToString()))
+                if (c < prev)
                 {
                     return false;
                 }
 
-                prev = text[i];
+                prev = c;
             }
 
-            return repeat;
+            return true;
+        }
+
+        private static bool CheckTwoAdjacent(int pwd)
+        {
+            var text = pwd.ToString();
+
+            for (var c = '0'; c <= '9'; c++)
+            {
+                if (text.Contains($"{c}{c}") && !text.Contains($"{c}{c}{c}"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static string PartTwo(string input)
         {
-            return "";
+            var valid = new List<int>();
+
+            for (var pwd = 138241; pwd <= 674034; pwd++)
+            {
+                if (CheckTwoAdjacent(pwd) && CheckIncreasingDigits(pwd))
+                {
+                    valid.Add(pwd);
+                }
+            }
+
+            return valid.Count.ToString();
         }
     }
 }
