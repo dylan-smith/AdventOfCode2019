@@ -21,12 +21,12 @@ namespace AdventOfCode
 
         private static bool CheckAdjacent(string pwd)
         {
-            return pwd.GroupBy(x => x).Select(g => g.Count()).Any(c => c >= 2);
+            return pwd.GroupBy(x => x).Any(g => g.Count() >= 2);
         }
 
         private static bool CheckTwoAdjacent(string pwd)
         {
-            return pwd.GroupBy(x => x).Select(g => g.Count()).Any(c => c == 2);
+            return pwd.GroupBy(x => x).Any(g => g.Count() == 2);
         }
 
         private static bool CheckIncreasingDigits(string pwd)
