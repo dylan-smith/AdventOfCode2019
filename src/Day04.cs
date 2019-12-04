@@ -31,7 +31,7 @@ namespace AdventOfCode
 
         private static bool CheckIncreasingDigits(string pwd)
         {
-            return string.Concat(pwd.OrderBy(c => c)) == pwd;
+            return pwd.OrderBy(c => c).SequenceEqual(pwd);
         }
     }
 }
