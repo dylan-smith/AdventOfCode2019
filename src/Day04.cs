@@ -1,89 +1,37 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AdventOfCode
 {
     public class Day04
     {
+        private static int _start = 138241;
+        private static int _count = 674034 - 138241 + 1;
+        private static List<string> _passwords = Enumerable.Range(_start, _count).Select(x => x.ToString()).ToList();
+
         public static string PartOne(string input)
         {
-            var valid = new List<int>();
-
-            for (var pwd = 138241; pwd <= 674034; pwd++)
-            {
-                if (CheckAdjacent(pwd) && CheckIncreasingDigits(pwd))
-                {
-                    valid.Add(pwd);
-                }
-            }
-
-            return valid.Count.ToString();
-        }
-
-        private static bool CheckAdjacent(int pwd)
-        {
-            var text = pwd.ToString();
-            var prev = text[0];
-            text = text.ShaveLeft(1);
-
-            foreach (var c in text)
-            {
-                if (c == prev)
-                {
-                    return true;
-                }
-
-                prev = c;
-            }
-
-            return false;
-        }
-
-        private static bool CheckIncreasingDigits(int pwd)
-        {
-            var text = pwd.ToString();
-            var prev = text[0];
-
-            foreach (var c in text)
-            {
-                if (c < prev)
-                {
-                    return false;
-                }
-
-                prev = c;
-            }
-
-            return true;
-        }
-
-        private static bool CheckTwoAdjacent(int pwd)
-        {
-            var text = pwd.ToString();
-
-            for (var c = '0'; c <= '9'; c++)
-            {
-                if (text.Contains($"{c}{c}") && !text.Contains($"{c}{c}{c}"))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _passwords.Count(x => CheckAdjacent(x) && CheckIncreasingDigits(x)).ToString();
         }
 
         public static string PartTwo(string input)
         {
-            var valid = new List<int>();
+            return _passwords.Count(x => CheckTwoAdjacent(x) && CheckIncreasingDigits(x)).ToString();
+        }
 
-            for (var pwd = 138241; pwd <= 674034; pwd++)
-            {
-                if (CheckTwoAdjacent(pwd) && CheckIncreasingDigits(pwd))
-                {
-                    valid.Add(pwd);
-                }
-            }
+        private static bool CheckAdjacent(string pwd)
+        {
+            return pwd.GroupBy(x => x).Select(g => g.Count()).Any(c => c >= 2);
+        }
 
-            return valid.Count.ToString();
+        private static bool CheckTwoAdjacent(string pwd)
+        {
+            return pwd.GroupBy(x => x).Select(g => g.Count()).Any(c => c == 2);
+        }
+
+        private static bool CheckIncreasingDigits(string pwd)
+        {
+            return string.Concat(pwd.OrderBy(c => c)) == pwd;
         }
     }
 }
