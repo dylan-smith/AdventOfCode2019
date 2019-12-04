@@ -19,19 +19,10 @@ namespace AdventOfCode
             return _passwords.Count(x => CheckTwoAdjacent(x) && CheckIncreasingDigits(x)).ToString();
         }
 
-        private static bool CheckAdjacent(string pwd)
-        {
-            return pwd.GroupBy(x => x).Any(g => g.Count() >= 2);
-        }
+        private static bool CheckAdjacent(string pwd) => pwd.GroupBy(x => x).Any(g => g.Count() >= 2);
 
-        private static bool CheckTwoAdjacent(string pwd)
-        {
-            return pwd.GroupBy(x => x).Any(g => g.Count() == 2);
-        }
+        private static bool CheckTwoAdjacent(string pwd) => pwd.GroupBy(x => x).Any(g => g.Count() == 2);
 
-        private static bool CheckIncreasingDigits(string pwd)
-        {
-            return pwd.OrderBy(c => c).SequenceEqual(pwd);
-        }
+        private static bool CheckIncreasingDigits(string pwd) => pwd.OrderBy(c => c).SequenceEqual(pwd);
     }
 }
