@@ -48,17 +48,15 @@ namespace AdventOfCode
 
                 while (_memory[_ip] != 99)
                 {
-                    var op = _memory[_ip];
-
-                    var (opcode, p1, p2, p3) = ParseOpCode(_memory[_ip]);
+                    var (op, p1, p2, p3) = ParseOpCode(_memory[_ip]);
 
                     int a;
                     int b;
                     int c;
 
-                    switch (opcode)
+                    switch (op)
                     {
-                        case 1:
+                        case 1: // add
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
                             c = _memory[_ip + 3];
@@ -66,7 +64,7 @@ namespace AdventOfCode
                             _memory[c] = a + b;
                             _ip += 4;
                             break;
-                        case 2:
+                        case 2: // mul
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
                             c = _memory[_ip + 3];
@@ -74,20 +72,20 @@ namespace AdventOfCode
                             _memory[c] = a * b;
                             _ip += 4;
                             break;
-                        case 3:
+                        case 3: // input
                             a = _memory[_ip + 1];
 
                             _memory[a] = _inputs.First();
                             _inputs.RemoveAt(0);
                             _ip += 2;
                             break;
-                        case 4:
+                        case 4: // output
                             a = GetParameter(_memory[_ip + 1], p1);
 
                             _outputs.Add(a);
                             _ip += 2;
                             break;
-                        case 5:
+                        case 5: // jump if not 0
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
 
@@ -101,7 +99,7 @@ namespace AdventOfCode
                             }
 
                             break;
-                        case 6:
+                        case 6: // jump if 0
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
 
@@ -115,7 +113,7 @@ namespace AdventOfCode
                             }
 
                             break;
-                        case 7:
+                        case 7: // less than
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
                             c = _memory[_ip + 3];
@@ -131,7 +129,7 @@ namespace AdventOfCode
 
                             _ip += 4;
                             break;
-                        case 8:
+                        case 8: // equal
                             a = GetParameter(_memory[_ip + 1], p1);
                             b = GetParameter(_memory[_ip + 2], p2);
                             c = _memory[_ip + 3];
@@ -148,7 +146,7 @@ namespace AdventOfCode
                             _ip += 4;
                             break;
                         default:
-                            throw new Exception($"Invalid op code [{opcode}]");
+                            throw new Exception($"Invalid op code [{op}]");
                     }
                 }
 
@@ -167,13 +165,11 @@ namespace AdventOfCode
 
             private (int op, int p1, int p2, int p3) ParseOpCode(int input)
             {
-                var text = input.ToString().PadLeft(5, '0');
-
-                var p3 = int.Parse(text[0].ToString());
-                var p2 = int.Parse(text[1].ToString());
-                var p1 = int.Parse(text[2].ToString());
-                var op = int.Parse(text.ShaveLeft(3));
-
+                var op = input % 100;
+                var p1 = input % 1000 / 100;
+                var p2 = input % 10000 / 1000;
+                var p3 = input % 100000 / 10000;
+                
                 return (op, p1, p2, p3);
             }
         }
