@@ -110,14 +110,8 @@ namespace AdventOfCode.Days
                 var a = GetParameter(_memory[_ip + 1], p1);
                 var b = GetParameter(_memory[_ip + 2], p2);
 
-                if (a != 0)
-                {
-                    return _ip = b;
-                }
-                else
-                {
-                    return _ip += 3;
-                }
+                _ip = a != 0 ? b : _ip + 3;
+                return _ip;
             }
 
             private int JumpIfZero(int p1, int p2)
@@ -125,14 +119,8 @@ namespace AdventOfCode.Days
                 var a = GetParameter(_memory[_ip + 1], p1);
                 var b = GetParameter(_memory[_ip + 2], p2);
 
-                if (a == 0)
-                {
-                    return _ip = b;
-                }
-                else
-                {
-                    return _ip += 3;
-                }
+                _ip = a == 0 ? b : _ip + 3;
+                return _ip;
             }
 
             private int LessThan(int p1, int p2)
@@ -141,14 +129,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(_memory[_ip + 2], p2);
                 var c = _memory[_ip + 3];
 
-                if (a < b)
-                {
-                    _memory[c] = 1;
-                }
-                else
-                {
-                    _memory[c] = 0;
-                }
+                _memory[c] = a < b ? 1 : 0;
 
                 return _ip += 4;
             }
@@ -159,14 +140,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(_memory[_ip + 2], p2);
                 var c = _memory[_ip + 3];
 
-                if (a == b)
-                {
-                    _memory[c] = 1;
-                }
-                else
-                {
-                    _memory[c] = 0;
-                }
+                _memory[c] = a == b ? 1 : 0;
 
                 return _ip += 4;
             }
