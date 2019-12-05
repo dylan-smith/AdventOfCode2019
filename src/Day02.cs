@@ -57,10 +57,7 @@ namespace AdventOfCode
                 _ip = 0;
             }
 
-            public void SetMemory(int address, int value)
-            {
-                _memory[address] = value;
-            }
+            public void SetMemory(int address, int value) => _memory[address] = value;
 
             public int Run()
             {
