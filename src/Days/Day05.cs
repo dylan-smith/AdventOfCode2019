@@ -10,14 +10,12 @@ namespace AdventOfCode.Days
         public override string PartOne(string input)
         {
             var vm = new IntCodeVM(input);
-
             return vm.Run(1).Last().ToString();
         }
 
         public override string PartTwo(string input)
         {
             var vm = new IntCodeVM(input);
-
             return vm.Run(5).Last().ToString();
         }
 
