@@ -70,8 +70,8 @@ namespace AdventOfCode.Days
 
             private int Add(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
                 var c = _memory[_ip + 3];
 
                 _memory[c] = a + b;
@@ -80,8 +80,8 @@ namespace AdventOfCode.Days
 
             private int Multiply(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
                 var c = _memory[_ip + 3];
 
                 _memory[c] = a * b;
@@ -99,7 +99,7 @@ namespace AdventOfCode.Days
 
             private int Output(int p1)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
+                var a = GetParameter(1, p1);
 
                 _outputs.Add(a);
                 return _ip += 2;
@@ -107,8 +107,8 @@ namespace AdventOfCode.Days
 
             private int JumpIfNotZero(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
 
                 _ip = a != 0 ? b : _ip + 3;
                 return _ip;
@@ -116,8 +116,8 @@ namespace AdventOfCode.Days
 
             private int JumpIfZero(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
 
                 _ip = a == 0 ? b : _ip + 3;
                 return _ip;
@@ -125,8 +125,8 @@ namespace AdventOfCode.Days
 
             private int LessThan(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
                 var c = _memory[_ip + 3];
 
                 _memory[c] = a < b ? 1 : 0;
@@ -136,8 +136,8 @@ namespace AdventOfCode.Days
 
             private int EqualCheck(int p1, int p2)
             {
-                var a = GetParameter(_memory[_ip + 1], p1);
-                var b = GetParameter(_memory[_ip + 2], p2);
+                var a = GetParameter(1, p1);
+                var b = GetParameter(2, p2);
                 var c = _memory[_ip + 3];
 
                 _memory[c] = a == b ? 1 : 0;
@@ -145,7 +145,7 @@ namespace AdventOfCode.Days
                 return _ip += 4;
             }
 
-            private int GetParameter(int value, int mode) => mode == 0 ? _memory[value] : value;
+            private int GetParameter(int offset, int mode) => mode == 0 ? _memory[_memory[_ip + offset]] : _memory[_ip + offset];
 
             private (int op, int p1, int p2) ParseOpCode(int input)
             {
