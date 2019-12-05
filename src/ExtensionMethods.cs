@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
@@ -1206,6 +1205,17 @@ namespace AdventOfCode
         public bool Equals(Point4D other)
         {
             return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 17;
+            hashCode = hashCode * 486187739 + X.GetHashCode();
+            hashCode = hashCode * 486187739 + Y.GetHashCode();
+            hashCode = hashCode * 486187739 + Z.GetHashCode();
+            hashCode = hashCode * 486187739 * T.GetHashCode();
+
+            return hashCode;
         }
     }
 }

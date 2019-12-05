@@ -1,45 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventOfCode", "AdventOfCode.csproj", "{C24249F3-969E-4A1A-A9F9-E4B977061609}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ECD78E24-235C-47BD-B1CA-2C5595F9B88D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventOfCode", "AdventOfCode.csproj", "{85FD56A1-6A84-477B-B6F3-5CACB631C8D2}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C24249F3-969E-4A1A-A9F9-E4B977061609}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C24249F3-969E-4A1A-A9F9-E4B977061609}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C24249F3-969E-4A1A-A9F9-E4B977061609}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C24249F3-969E-4A1A-A9F9-E4B977061609}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85FD56A1-6A84-477B-B6F3-5CACB631C8D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85FD56A1-6A84-477B-B6F3-5CACB631C8D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85FD56A1-6A84-477B-B6F3-5CACB631C8D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85FD56A1-6A84-477B-B6F3-5CACB631C8D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B8CA6F37-9D54-46FB-96CC-D2D4733E27A5}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
+		SolutionGuid = {7F505DBC-BCAB-4E11-BFCA-D8B04D9BDA76}
 	EndGlobalSection
 EndGlobal
