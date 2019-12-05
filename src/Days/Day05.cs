@@ -171,15 +171,7 @@ namespace AdventOfCode.Days
                 return _ip += 4;
             }
 
-            private int GetParameter(int value, int mode)
-            {
-                if (mode == 0)
-                {
-                    return _memory[value];
-                }
-
-                return value;
-            }
+            private int GetParameter(int value, int mode) => mode == 0 ? _memory[value] : value;
 
             private (int op, int p1, int p2) ParseOpCode(int input)
             {
