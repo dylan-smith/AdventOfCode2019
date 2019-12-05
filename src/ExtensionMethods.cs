@@ -434,36 +434,26 @@ namespace AdventOfCode
 
         public static Direction ToDirection(this char c)
         {
-            switch (c)
+            return c switch
             {
-                case 'R':
-                    return Direction.Right;
-                case 'D':
-                    return Direction.Down;
-                case 'U':
-                    return Direction.Up;
-                case 'L':
-                    return Direction.Left;
-            }
-
-            throw new ArgumentException($"Unrecognized character [{c}]");
+                'R' => Direction.Right,
+                'D' => Direction.Down,
+                'U' => Direction.Up,
+                'L' => Direction.Left,
+                _ => throw new ArgumentException($"Unrecognized character [{c}]")
+            };
         }
 
         public static Compass ToCompass(this char c)
         {
-            switch (c)
+            return c switch
             {
-                case 'N':
-                    return Compass.North;
-                case 'S':
-                    return Compass.South;
-                case 'E':
-                    return Compass.East;
-                case 'W':
-                    return Compass.West;
-            }
-
-            throw new ArgumentException($"Unrecognized character [{c}]");
+                'N' => Compass.North,
+                'S' => Compass.South,
+                'E' => Compass.East,
+                'W' => Compass.West,
+                _ => throw new ArgumentException($"Unrecognized character [{c}]")
+            };
         }
     }
 
