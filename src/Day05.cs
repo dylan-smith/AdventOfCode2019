@@ -15,7 +15,9 @@ namespace AdventOfCode
 
         public static string PartTwo(string input)
         {
-            return "";
+            var vm = new IntCodeVM(input);
+
+            return vm.Run(5).Last().ToString();
         }
 
         public class IntCodeVM
@@ -84,6 +86,66 @@ namespace AdventOfCode
 
                             _outputs.Add(a);
                             _ip += 2;
+                            break;
+                        case 5:
+                            a = GetParameter(_memory[_ip + 1], p1);
+                            b = GetParameter(_memory[_ip + 2], p2);
+
+                            if (a != 0)
+                            {
+                                _ip = b;
+                            }
+                            else
+                            {
+                                _ip += 3;
+                            }
+
+                            break;
+                        case 6:
+                            a = GetParameter(_memory[_ip + 1], p1);
+                            b = GetParameter(_memory[_ip + 2], p2);
+
+                            if (a == 0)
+                            {
+                                _ip = b;
+                            }
+                            else
+                            {
+                                _ip += 3;
+                            }
+
+                            break;
+                        case 7:
+                            a = GetParameter(_memory[_ip + 1], p1);
+                            b = GetParameter(_memory[_ip + 2], p2);
+                            c = _memory[_ip + 3];
+
+                            if (a < b)
+                            {
+                                _memory[c] = 1;
+                            }
+                            else
+                            {
+                                _memory[c] = 0;
+                            }
+
+                            _ip += 4;
+                            break;
+                        case 8:
+                            a = GetParameter(_memory[_ip + 1], p1);
+                            b = GetParameter(_memory[_ip + 2], p2);
+                            c = _memory[_ip + 3];
+
+                            if (a == b)
+                            {
+                                _memory[c] = 1;
+                            }
+                            else
+                            {
+                                _memory[c] = 0;
+                            }
+
+                            _ip += 4;
                             break;
                         default:
                             throw new Exception($"Invalid op code [{opcode}]");
