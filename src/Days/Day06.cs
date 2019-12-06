@@ -21,8 +21,8 @@ namespace AdventOfCode.Days
 
             foreach (var line in lines)
             {
-                var left = line.Substring(0, 3);
-                var right = line.Substring(4);
+                var left = line.Split(')').First();
+                var right = line.Split(')').Last();
 
                 var leftPlanet = planets.SingleOrDefault(p => p.Name == left);
                 var rightPlanet = planets.SingleOrDefault(p => p.Name == right);
@@ -48,7 +48,34 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            throw new NotImplementedException();
+            var planets = BuildPlanetList(input);
+
+            var startPlanet = planets.Single(p => p.Name == "YOU").Orbits;
+            var targetPlanet = planets.Single(p => p.Name == "SAN").Orbits;
+
+            var distances = new Dictionary<Planet, int>();
+            planets.ForEach(p => distances.Add(p, int.MaxValue));
+
+            CalcDistance(startPlanet, 0, distances);
+
+            return distances[targetPlanet].ToString();
+        }
+
+        private void CalcDistance(Planet planet, int distance, Dictionary<Planet, int> distances)
+        {
+            if (distances[planet] < distance) return;
+
+            distances[planet] = distance;
+
+            if (planet.Orbits != null)
+            {
+                CalcDistance(planet.Orbits, distance + 1, distances);
+            }
+
+            foreach (var p in planet.Orbiters)
+            {
+                CalcDistance(p, distance + 1, distances);
+            }
         }
 
         private class Planet
