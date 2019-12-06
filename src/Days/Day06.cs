@@ -72,10 +72,7 @@ namespace AdventOfCode.Days
                 CalcDistance(planet.Orbits, distance + 1, distances);
             }
 
-            foreach (var p in planet.Orbiters)
-            {
-                CalcDistance(p, distance + 1, distances);
-            }
+            planet.Orbiters.ForEach(p => CalcDistance(p, distance + 1, distances));
         }
 
         private class Planet
