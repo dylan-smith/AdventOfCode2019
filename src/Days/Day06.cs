@@ -9,89 +9,57 @@ namespace AdventOfCode.Days
     {
         public override string PartOne(string input)
         {
-            var planets = BuildPlanetList(input);
+            var planets = BuildTree(input);
+            
+            var children = planets.Children.AsEnumerable();
+            var result = 0;
+            var layer = 1;
 
-            return planets.Sum(p => p.CountOrbits()).ToString();
+            while (children?.Count() > 0)
+            {
+                result += children.Count() * layer;
+                layer++;
+                children = children.GetAllChildren();
+            }
+
+            return result.ToString();
         }
 
-        private IEnumerable<Planet> BuildPlanetList(string input)
+        private Tree<string> BuildTree(string input)
         {
             var lines = input.Lines().ToList();
-            var planets = new List<Planet>();
+            var planets = new Dictionary<string, Tree<string>>();
 
             foreach (var line in lines)
             {
                 var left = line.Split(')').First();
                 var right = line.Split(')').Last();
 
-                var leftPlanet = planets.SingleOrDefault(p => p.Name == left);
-                var rightPlanet = planets.SingleOrDefault(p => p.Name == right);
-
-                if (leftPlanet == null)
-                {
-                    leftPlanet = new Planet(left);
-                    planets.Add(leftPlanet);
+                if (!planets.ContainsKey(left))
+                { 
+                    planets.Add(left, new Tree<string>(left));
                 }
 
-                if (rightPlanet == null)
+                if (!planets.ContainsKey(right))
                 {
-                    rightPlanet = new Planet(right);
-                    planets.Add(rightPlanet);
+                    planets.Add(right, new Tree<string>(right));
                 }
 
-                rightPlanet.Orbits = leftPlanet;
-                leftPlanet.Orbiters.Add(rightPlanet);
+                planets[right].Parent = planets[left];
+                planets[left].Children.AddLast(planets[right]);
             }
 
-            return planets;
+            return planets["COM"];
         }
 
         public override string PartTwo(string input)
         {
-            var planets = BuildPlanetList(input);
+            var planets = BuildTree(input);
 
-            var startPlanet = planets.Single(p => p.Name == "YOU").Orbits;
-            var targetPlanet = planets.Single(p => p.Name == "SAN").Orbits;
+            var startPlanet = planets.Single(p => p.Data == "YOU").Parent;
+            var targetPlanet = planets.Single(p => p.Data == "SAN").Parent;
 
-            var distances = new Dictionary<Planet, int>();
-            planets.ForEach(p => distances.Add(p, int.MaxValue));
-
-            CalcDistance(startPlanet, 0, distances);
-
-            return distances[targetPlanet].ToString();
-        }
-
-        private void CalcDistance(Planet planet, int distance, Dictionary<Planet, int> distances)
-        {
-            if (distances[planet] < distance) return;
-
-            distances[planet] = distance;
-
-            if (planet.Orbits != null)
-            {
-                CalcDistance(planet.Orbits, distance + 1, distances);
-            }
-
-            planet.Orbiters.ForEach(p => CalcDistance(p, distance + 1, distances));
-        }
-
-        private class Planet
-        {
-            public List<Planet> Orbiters { get; set; } = new List<Planet>();
-            public Planet Orbits { get; set; }
-            public string Name { get; set; }
-
-            public Planet(string name)
-            {
-                Name = name;
-            }
-
-            public int CountOrbits()
-            {
-                if (Orbits == null) return 0;
-
-                return Orbits.CountOrbits() + 1;
-            }
+            return startPlanet.CalcDistance(targetPlanet).ToString();
         }
     }
 }
