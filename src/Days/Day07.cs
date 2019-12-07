@@ -12,19 +12,16 @@ namespace AdventOfCode.Days
         {
             var phases = new List<int>() { 0, 1, 2, 3, 4 };
             var phaseSettings = phases.GetPermutations();
-            var maxOutput = 0;
 
-            foreach (var p in phaseSettings)
-            {
-                var output = GetThrusterOutput(p, input);
+            return phaseSettings.Select(x => GetThrusterOutput(x, input)).Max().ToString();
+        }
 
-                if (output >= maxOutput)
-                {
-                    maxOutput = output;
-                }
-            }
+        public override string PartTwo(string input)
+        {
+            var phases = new List<int>() { 9, 8, 7, 6, 5 };
+            var phaseSettings = phases.GetPermutations();
 
-            return maxOutput.ToString();
+            return phaseSettings.Select(x => GetThrusterOutputWithFeedback(x, input)).Max().ToString();
         }
 
         private int GetThrusterOutput(IEnumerable<int> phaseSettings, string program)
@@ -42,25 +39,6 @@ namespace AdventOfCode.Days
             output = E.Run(phaseSettings.ElementAt(4), output.First());
 
             return output.First();
-        }
-
-        public override string PartTwo(string input)
-        {
-            var phases = new List<int>() { 9, 8, 7, 6, 5 };
-            var phaseSettings = phases.GetPermutations();
-            var maxOutput = 0;
-
-            foreach (var p in phaseSettings)
-            {
-                var output = GetThrusterOutputWithFeedback(p, input);
-
-                if (output >= maxOutput)
-                {
-                    maxOutput = output;
-                }
-            }
-
-            return maxOutput.ToString();
         }
 
         private int GetThrusterOutputWithFeedback(IEnumerable<int> phaseSettings, string program)
