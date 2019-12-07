@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace AdventOfCode.Days
@@ -45,7 +46,46 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            throw new NotImplementedException();
+            var phases = new List<int>() { 9, 8, 7, 6, 5 };
+            var phaseSettings = phases.GetPermutations();
+            var maxOutput = 0;
+
+            foreach (var p in phaseSettings)
+            {
+                var output = GetThrusterOutputWithFeedback(p, input);
+
+                if (output >= maxOutput)
+                {
+                    maxOutput = output;
+                }
+            }
+
+            return maxOutput.ToString();
+        }
+
+        private int GetThrusterOutputWithFeedback(IEnumerable<int> phaseSettings, string program)
+        {
+            var A = new IntCodeVM(program, "A");
+            var B = new IntCodeVM(program, "B");
+            var C = new IntCodeVM(program, "C");
+            var D = new IntCodeVM(program, "D");
+            var E = new IntCodeVM(program, "E");
+
+            A.OutputVM = B;
+            B.OutputVM = C;
+            C.OutputVM = D;
+            D.OutputVM = E;
+            E.OutputVM = A;
+
+            A.AddInput(phaseSettings.ElementAt(0));
+            B.AddInput(phaseSettings.ElementAt(1));
+            C.AddInput(phaseSettings.ElementAt(2));
+            D.AddInput(phaseSettings.ElementAt(3));
+            E.AddInput(phaseSettings.ElementAt(4));
+
+            A.Run(0);
+
+            return E.Outputs.Last();
         }
 
         public class IntCodeVM
@@ -54,12 +94,20 @@ namespace AdventOfCode.Days
             private List<int> _memory;
             private int _ip = 0;
             private List<int> _inputs;
-            private List<int> _outputs = new List<int>();
+            public List<int> Outputs { get; set; } = new List<int>();
+            public string Name { get; set; }
+            public bool Halted { get; set; }
 
-            public IntCodeVM(string program)
+            public IntCodeVM OutputVM { get; set; }
+
+            public IntCodeVM(string program) : this(program, string.Empty)
+            { }
+
+            public IntCodeVM(string program, string name)
             {
                 _instructions = program.Integers().ToList();
                 _memory = _instructions.Select(x => x).ToList();
+                Name = name;
             }
 
             public void Reset()
@@ -68,11 +116,26 @@ namespace AdventOfCode.Days
                 _ip = 0;
             }
 
+            public void AddInput(int input)
+            {
+                if (_inputs == null)
+                {
+                    _inputs = new List<int>();
+                }
+
+                _inputs.Add(input);
+            }
+
+            public void AddInputs(IEnumerable<int> inputs)
+            {
+                inputs.ForEach(x => AddInput(x));
+            }
+
             public void SetMemory(int address, int value) => _memory[address] = value;
 
             public IEnumerable<int> Run(params int[] inputs)
             {
-                _inputs = inputs.ToList();
+                AddInputs(inputs);
 
                 while (_memory[_ip] != 99)
                 {
@@ -92,7 +155,14 @@ namespace AdventOfCode.Days
                     };
                 }
 
-                return _outputs;
+                Halted = true;
+
+                if (OutputVM != null && !OutputVM.Halted)
+                {
+                    OutputVM.Run();
+                }
+
+                return Outputs;
             }
 
             private int Add(int p1, int p2)
@@ -119,16 +189,29 @@ namespace AdventOfCode.Days
             {
                 var a = _memory[_ip + 1];
 
-                _memory[a] = _inputs.First();
-                _inputs.RemoveAt(0);
-                return _ip += 2;
+                if (_inputs.Any())
+                {
+                    
+                    _memory[a] = _inputs.First();
+                    _inputs.RemoveAt(0);
+                    return _ip += 2;
+                }
+
+                OutputVM.Run();
+                return _ip;
             }
 
             private int Output(int p1)
             {
                 var a = GetParameter(1, p1);
 
-                _outputs.Add(a);
+                Outputs.Add(a);
+
+                if (OutputVM != null)
+                {
+                    OutputVM.AddInput(a);
+                }
+
                 return _ip += 2;
             }
 
