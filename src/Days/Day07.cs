@@ -13,7 +13,7 @@ namespace AdventOfCode.Days
             var phases = new List<int>() { 0, 1, 2, 3, 4 };
             var phaseSettings = phases.GetPermutations();
 
-            return phaseSettings.Select(x => GetThrusterOutput(x, input)).Max().ToString();
+            return phaseSettings.Select(x => GetThrusterOutput(x, input, false)).Max().ToString();
         }
 
         public override string PartTwo(string input)
@@ -21,10 +21,10 @@ namespace AdventOfCode.Days
             var phases = new List<int>() { 9, 8, 7, 6, 5 };
             var phaseSettings = phases.GetPermutations();
 
-            return phaseSettings.Select(x => GetThrusterOutputWithFeedback(x, input)).Max().ToString();
+            return phaseSettings.Select(x => GetThrusterOutput(x, input, true)).Max().ToString();
         }
 
-        private int GetThrusterOutput(IEnumerable<int> phaseSettings, string program)
+        private int GetThrusterOutput(IEnumerable<int> phaseSettings, string program, bool feedback)
         {
             var A = new IntCodeVM(program);
             var B = new IntCodeVM(program);
@@ -32,28 +32,15 @@ namespace AdventOfCode.Days
             var D = new IntCodeVM(program);
             var E = new IntCodeVM(program);
 
-            var output = A.Run(phaseSettings.ElementAt(0), 0);
-            output = B.Run(phaseSettings.ElementAt(1), output.First());
-            output = C.Run(phaseSettings.ElementAt(2), output.First());
-            output = D.Run(phaseSettings.ElementAt(3), output.First());
-            output = E.Run(phaseSettings.ElementAt(4), output.First());
-
-            return output.First();
-        }
-
-        private int GetThrusterOutputWithFeedback(IEnumerable<int> phaseSettings, string program)
-        {
-            var A = new IntCodeVM(program, "A");
-            var B = new IntCodeVM(program, "B");
-            var C = new IntCodeVM(program, "C");
-            var D = new IntCodeVM(program, "D");
-            var E = new IntCodeVM(program, "E");
-
             A.OutputVM = B;
             B.OutputVM = C;
             C.OutputVM = D;
             D.OutputVM = E;
-            E.OutputVM = A;
+
+            if (feedback)
+            {
+                E.OutputVM = A;
+            }
 
             A.AddInput(phaseSettings.ElementAt(0));
             B.AddInput(phaseSettings.ElementAt(1));
@@ -73,19 +60,14 @@ namespace AdventOfCode.Days
             private int _ip = 0;
             private List<int> _inputs;
             public List<int> Outputs { get; set; } = new List<int>();
-            public string Name { get; set; }
             public bool Halted { get; set; }
 
             public IntCodeVM OutputVM { get; set; }
 
-            public IntCodeVM(string program) : this(program, string.Empty)
-            { }
-
-            public IntCodeVM(string program, string name)
+            public IntCodeVM(string program)
             {
                 _instructions = program.Integers().ToList();
                 _memory = _instructions.Select(x => x).ToList();
-                Name = name;
             }
 
             public void Reset()
