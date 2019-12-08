@@ -43,20 +43,21 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var img = new System.Drawing.Bitmap(_width, _height);
-
-            var layers = GetLayers(input);
-
-            for (var y = 0; y < _height; y++)
+            using (var img = new Bitmap(_width, _height))
             {
-                for (var x = 0; x < _width; x++)
-                {
-                    var pixel = GetPixel(layers, x, y);
-                    img.SetPixel(x, y, pixel);
-                }
-            }
+                var layers = GetLayers(input);
 
-            img.Save(@"C:\AdventOfCode\Day8.bmp");
+                for (var y = 0; y < _height; y++)
+                {
+                    for (var x = 0; x < _width; x++)
+                    {
+                        var pixel = GetPixel(layers, x, y);
+                        img.SetPixel(x, y, pixel);
+                    }
+                }
+
+                img.Save(@"C:\AdventOfCode\Day8.bmp");
+            }
 
             return @"C:\AdventOfCode\Day8.bmp";
         }
@@ -76,7 +77,7 @@ namespace AdventOfCode.Days
                 }
             }
 
-            throw new Exception("All pixels were transparent");
+            throw new ArgumentException("All pixels were transparent");
         }
     }
 }
