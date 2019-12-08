@@ -43,21 +43,8 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            using (var img = new Bitmap(_width, _height))
-            {
-                var layers = GetLayers(input);
-
-                for (var y = 0; y < _height; y++)
-                {
-                    for (var x = 0; x < _width; x++)
-                    {
-                        var pixel = GetPixel(layers, x, y);
-                        img.SetPixel(x, y, pixel);
-                    }
-                }
-
-                img.Save(@"C:\AdventOfCode\Day8.bmp");
-            }
+            var layers = GetLayers(input).ToList();
+            ImageHelper.CreateBitmap(_width, _height, @"C:\AdventOfCode\Day8.bmp", (x, y) => GetPixel(layers, x, y));
 
             return @"C:\AdventOfCode\Day8.bmp";
         }
