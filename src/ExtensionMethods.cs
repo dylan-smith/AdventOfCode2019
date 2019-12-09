@@ -784,6 +784,14 @@ namespace AdventOfCode
         {
             collection.ForEach(x => set.Add(x));
         }
+
+        public static void AddMany<T>(this IList<T> list, T item, int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(item);
+            }
+        }
     }
 
     public static class PointExtensions

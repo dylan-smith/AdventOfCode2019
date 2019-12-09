@@ -28,7 +28,7 @@ namespace AdventOfCode.Days
             private readonly List<long> _instructions;
             private List<long> _memory;
             private int _ip = 0;
-            private List<long> _inputs;
+            private List<long> _inputs = new List<long>();
             private long _relativeBase = 0;
             public List<long> Outputs { get; set; } = new List<long>();
             public bool Halted { get; set; }
@@ -38,34 +38,19 @@ namespace AdventOfCode.Days
             public IntCodeVM(string program)
             {
                 _instructions = program.Longs().ToList();
-                _memory = _instructions.Select(x => x).ToList();
-
-                for (var i = 0; i < 1000000; i++)
-                {
-                    _memory.Add(0);
-                }
+                Reset();
             }
 
             public void Reset()
             {
                 _memory = _instructions.Select(x => x).ToList();
+                _memory.AddMany(0, 1000000);
                 _ip = 0;
             }
 
-            public void AddInput(long input)
-            {
-                if (_inputs == null)
-                {
-                    _inputs = new List<long>();
-                }
+            public void AddInput(long input) => _inputs.Add(input);
 
-                _inputs.Add(input);
-            }
-
-            public void AddInputs(IEnumerable<long> inputs)
-            {
-                inputs.ForEach(x => AddInput(x));
-            }
+            public void AddInputs(IEnumerable<long> inputs) => _inputs.AddRange(inputs);
 
             public void SetMemory(int address, long value) => _memory[address] = value;
 
@@ -74,11 +59,7 @@ namespace AdventOfCode.Days
                 if (_memory.Count < (address - 1))
                 {
                     var toAdd = (address - 1) - _memory.Count;
-
-                    for (var i = 0; i < toAdd; i++)
-                    {
-                        _memory.Add(0);
-                    }
+                    _memory.AddMany(0, toAdd);
                 }
 
                 return _memory[address];
@@ -221,7 +202,7 @@ namespace AdventOfCode.Days
                 {
                     0 => _memory[(int)_memory[_ip + offset]],
                     1 => _memory[_ip + offset],
-                    2 => _memory[(int)_memory[_ip + offset] + (int)_relativeBase],
+                    2 => _memory[(int)(_memory[_ip + offset] + _relativeBase)],
                     _ => throw new Exception("Invalid parameter mode")
                 };
             }
@@ -231,7 +212,7 @@ namespace AdventOfCode.Days
                 return mode switch
                 {
                     0 => (int)_memory[_ip + offset],
-                    2 => (int)_memory[_ip + offset] + (int)_relativeBase,
+                    2 => (int)(_memory[_ip + offset] + _relativeBase),
                     _ => throw new Exception("Invalid parameter mode")
                 };
             }
