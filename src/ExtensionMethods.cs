@@ -249,6 +249,11 @@ namespace AdventOfCode
             return input.Words().Select(x => int.Parse(x)).ToList();
         }
 
+        public static IEnumerable<long> Longs(this string input)
+        {
+            return input.Words().Select(x => long.Parse(x)).ToList();
+        }
+
         public static IEnumerable<double> Doubles(this string input)
         {
             return input.Words().Select(x => double.Parse(x)).ToList();
