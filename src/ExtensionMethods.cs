@@ -649,11 +649,6 @@ namespace AdventOfCode
             return -1;
         }
 
-        public static void CreateBitMap<T>(this T[,] pixels, string filePath, Func<T, Color> pixelFunc)
-        {
-
-        }
-
         public static T WithMin<T>(this IEnumerable<T> a, Func<T, int> selector)
         {
             var min = a.Min(selector);
