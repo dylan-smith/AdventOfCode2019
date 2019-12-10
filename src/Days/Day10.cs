@@ -16,16 +16,47 @@ namespace AdventOfCode.Days
 
             var station = _grid.GetPoints(x => _grid[x.X, x.Y] == '#').WithMax(x => CountVisibleAsteroids(x));
 
-            return (CountVisibleAsteroids(station) - 1).ToString();
+            return CountVisibleAsteroids(station).ToString();
         }
 
-        private int CountVisibleAsteroids(Point from)
+        public override string PartTwo(string input)
         {
-            return _grid.GetPoints().Count(p => _grid[p.X, p.Y] == '#' && IsVisible(p, from));
+            _grid = input.CreateCharGrid();
+
+            var station = _grid.GetPoints(x => _grid[x.X, x.Y] == '#').WithMax(x => CountVisibleAsteroids(x));
+
+            var vaporized = 0;
+
+            while (true)
+            {
+                var visible = _grid.GetPoints().Where(p => _grid[p.X, p.Y] == '#' && IsVisible(p, station)).ToList();
+                var visibleE = visible.Where(v => v.X >= station.X).OrderBy(v => v.CalcSlope(station));
+                var visibleW = visible.Where(v => v.X < station.X).OrderBy(v => v.CalcSlope(station));
+
+                var toVapor = visibleE.Concat(visibleW);
+
+                foreach (var v in toVapor)
+                {
+                    _grid[v.X, v.Y] = '*';
+                    vaporized++;
+
+                    if (vaporized == 200)
+                    {
+                        return (v.X * 100 + v.Y).ToString();
+                    }
+                }
+            }
         }
+
+        private int CountVisibleAsteroids(Point from) => _grid.GetPoints().Count(p => _grid[p.X, p.Y] == '#' && IsVisible(p, from));
 
         private bool IsVisible(Point p, Point from)
         {
+            if (p == from)
+            {
+                return false;
+            }
+
             var slope = p.CalcSlope(from);
             var distance = p.CalcDistance(from);
 
@@ -61,35 +92,6 @@ namespace AdventOfCode.Days
             }
 
             return true;
-        }
-
-        public override string PartTwo(string input)
-        {
-            _grid = input.CreateCharGrid();
-
-            var station = _grid.GetPoints(x => _grid[x.X, x.Y] == '#').WithMax(x => CountVisibleAsteroids(x));
-
-            var vaporized = 0;
-
-            while (true)
-            {
-                var visible = _grid.GetPoints().Where(p => _grid[p.X, p.Y] == '#' && IsVisible(p, station) && p != station).ToList();
-                var visibleE = visible.Where(v => v.X >= station.X).OrderBy(v => v.CalcSlope(station));
-                var visibleW = visible.Where(v => v.X < station.X).OrderBy(v => v.CalcSlope(station));
-
-                var toVapor = visibleE.Concat(visibleW);
-
-                foreach (var v in toVapor)
-                {
-                    _grid[v.X, v.Y] = '*';
-                    vaporized++;
-
-                    if (vaporized == 200)
-                    {
-                        return (v.X * 100 + v.Y).ToString();
-                    }
-                }
-            }
         }
     }
 }
