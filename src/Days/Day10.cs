@@ -26,61 +26,41 @@ namespace AdventOfCode.Days
 
         private bool IsVisible(Point p, Point from)
         {
-            var slope = CalcSlope(p, from);
-            var distance = CalcDistance(p, from);
+            var slope = p.CalcSlope(from);
+            var distance = p.CalcDistance(from);
 
-            var maybeBlockers = _grid.GetPoints().Where(x => _grid[x.X, x.Y] == '#' &&
-                                        CalcSlope(x, from) == slope &&
-                                        CalcDistance(x, from) < distance).ToList();
+            return !_grid.GetPoints().Any(x => _grid[x.X, x.Y] == '#' &&
+                                        x.CalcSlope(from) == slope &&
+                                        x.CalcDistance(from) < distance &&
+                                        !IsBetween(from, x, p));
+        }
 
-            foreach (var b in maybeBlockers)
+        private bool IsBetween(Point station, Point a, Point b)
+        {
+            if (b.X > station.X && a.X > station.X)
             {
-                if (p.X > from.X && b.X > from.X)
+                return false;
+            }
+
+            if (b.X < station.X && a.X < station.X)
+            {
+                return false;
+            }
+
+            if (b.X == station.X)
+            {
+                if (b.Y > station.Y && a.Y > station.Y)
                 {
                     return false;
                 }
 
-                if (p.X < from.X && b.X < from.X)
+                if (b.Y < station.Y && a.Y < station.Y)
                 {
                     return false;
-                }
-
-                if (p.X == from.X)
-                {
-                    if (p.Y > from.Y && b.Y > from.Y)
-                    {
-                        return false;
-                    }
-
-                    if (p.Y < from.Y && b.Y < from.Y)
-                    {
-                        return false;
-                    }
                 }
             }
 
-
-            //if (_grid.GetPoints().Any(x => _grid[x.X, x.Y] == '#' && 
-            //                            CalcSlope(x, from) == slope && 
-            //                            CalcDistance(x, from) < distance))
-            //{
-            //    var blocker = _grid.GetPoints().First(x => _grid[x.X, x.Y] == '#' && CalcSlope(x, from) == slope && CalcDistance(x, from) < distance);
-
-                
-            //    return false;
-            //}
-
             return true;
-        }
-
-        private double CalcDistance(Point p, Point from)
-        {
-            return Math.Sqrt(Math.Abs(p.X - from.X) * Math.Abs(p.X - from.X) + Math.Abs(p.Y - from.Y) * Math.Abs(p.Y - from.Y));
-        }
-
-        private double CalcSlope(Point p, Point from)
-        {
-            return (double)(p.Y - from.Y) / (double)(p.X - from.X);
         }
 
         public override string PartTwo(string input)
@@ -94,21 +74,12 @@ namespace AdventOfCode.Days
             while (true)
             {
                 var visible = _grid.GetPoints().Where(p => _grid[p.X, p.Y] == '#' && IsVisible(p, station) && p != station).ToList();
-                var visibleE = visible.Where(v => v.X >= station.X).OrderBy(v => CalcSlope(v, station));
-                var visibleW = visible.Where(v => v.X < station.X).OrderBy(v => CalcSlope(v, station));
+                var visibleE = visible.Where(v => v.X >= station.X).OrderBy(v => v.CalcSlope(station));
+                var visibleW = visible.Where(v => v.X < station.X).OrderBy(v => v.CalcSlope(station));
 
-                foreach (var v in visibleE)
-                {
-                    _grid[v.X, v.Y] = '*';
-                    vaporized++;
+                var toVapor = visibleE.Concat(visibleW);
 
-                    if (vaporized == 200)
-                    {
-                        return (v.X * 100 + v.Y).ToString();
-                    }
-                }
-
-                foreach (var v in visibleW)
+                foreach (var v in toVapor)
                 {
                     _grid[v.X, v.Y] = '*';
                     vaporized++;

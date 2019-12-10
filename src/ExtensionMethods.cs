@@ -892,6 +892,10 @@ namespace AdventOfCode
         {
             return point.Move(direction, 1);
         }
+
+        public static double CalcDistance(this Point p, Point to) => Math.Sqrt(Math.Pow(p.X - to.X, 2) + Math.Pow(p.Y - to.Y, 2));
+
+        public static double CalcSlope(this Point p, Point to) => (double)(p.Y - to.Y) / (double)(p.X - to.X);
     }
 
     public static class RectangleExtensions
