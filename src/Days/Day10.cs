@@ -89,79 +89,36 @@ namespace AdventOfCode.Days
 
             var station = _grid.GetPoints(x => _grid[x.X, x.Y] == '#').WithMax(x => CountVisibleAsteroids(x));
 
-            var visible = _grid.GetPoints().Where(p => _grid[p.X, p.Y] == '#' && IsVisible(p, station) && p != station).ToList();
-
             var vaporized = 0;
 
-            while (vaporized < 200)
+            while (true)
             {
-                var visibleN = visible.SingleOrDefault(p => p.X == station.X && p.Y < station.Y);
-                var visibleNE = visible.Where(p => p.X > station.X && p.Y < station.Y).ToList();
-                var visibleE = visible.SingleOrDefault(p => p.Y == station.Y && p.X > station.X);
-                var visibleSE = visible.Where(p => p.X > station.X && p.Y > station.Y).ToList();
-                var visibleS = visible.SingleOrDefault(p => p.X == station.X && p.Y > station.Y);
-                var visibleSW = visible.Where(p => p.X < station.X && p.Y > station.Y).ToList();
-                var visibleW = visible.SingleOrDefault(p => p.Y == station.Y && p.X < station.X);
-                var visibleNW = visible.Where(p => p.X < station.X && p.Y < station.Y).ToList();
+                var visible = _grid.GetPoints().Where(p => _grid[p.X, p.Y] == '#' && IsVisible(p, station) && p != station).ToList();
+                var visibleE = visible.Where(v => v.X >= station.X).OrderBy(v => CalcSlope(v, station));
+                var visibleW = visible.Where(v => v.X < station.X).OrderBy(v => CalcSlope(v, station));
 
-                if (visibleN != null)
-                {
-                    _grid[visibleN.X, visibleN.Y] = '*';
-                    vaporized++;
-                }
-
-                var vapor = visibleNE.OrderBy(p => CalcSlope(p, station));
-
-                foreach (var v in vapor)
+                foreach (var v in visibleE)
                 {
                     _grid[v.X, v.Y] = '*';
                     vaporized++;
+
+                    if (vaporized == 200)
+                    {
+                        return (v.X * 100 + v.Y).ToString();
+                    }
                 }
 
-                if (visibleE != null)
-                {
-                    _grid[visibleE.X, visibleE.Y] = '*';
-                    vaporized++;
-                }
-
-                vapor = visibleSE.OrderBy(p => CalcSlope(p, station));
-
-                foreach (var v in vapor)
+                foreach (var v in visibleW)
                 {
                     _grid[v.X, v.Y] = '*';
                     vaporized++;
-                }
 
-                if (visibleS != null)
-                {
-                    _grid[visibleS.X, visibleS.Y] = '*';
-                    vaporized++;
-                }
-
-                vapor = visibleSW.OrderBy(p => CalcSlope(p, station));
-
-                foreach (var v in vapor)
-                {
-                    _grid[v.X, v.Y] = '*';
-                    vaporized++;
-                }
-
-                if (visibleW != null)
-                {
-                    _grid[visibleW.X, visibleW.Y] = '*';
-                    vaporized++;
-                }
-
-                vapor = visibleNW.OrderBy(p => CalcSlope(p, station));
-
-                foreach (var v in vapor)
-                {
-                    _grid[v.X, v.Y] = '*';
-                    vaporized++;
+                    if (vaporized == 200)
+                    {
+                        return (v.X * 100 + v.Y).ToString();
+                    }
                 }
             }
-
-            return "blah";
         }
     }
 }
