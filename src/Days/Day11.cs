@@ -15,44 +15,15 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            _vm = new IntCodeVM(input);
-
-            _vm.InputFunction = GetInput;
-            _vm.OutputFunction = PaintPanel;
+            _vm = new IntCodeVM(input)
+            {
+                InputFunction = GetInput,
+                OutputFunction = PaintPanel
+            };
 
             _vm.Run();
 
             return _panels.Count.ToString();
-        }
-
-        private long GetInput()
-        {
-            if (_panels.ContainsKey(_pos))
-            {
-                return _panels[_pos] ? 1 : 0;
-            }
-
-            return 0;
-        }
-
-        private void PaintPanel(long color)
-        {
-            if (!_panels.ContainsKey(_pos))
-            {
-                _panels.Add(_pos, false);
-            }
-
-            _panels[_pos] = color == 1 ? true : false;
-
-            _vm.OutputFunction = MoveRobot;
-        }
-
-        private void MoveRobot(long turn)
-        {
-            _dir = turn == 0 ? _dir.TurnLeft() : _dir.TurnRight();
-            _pos = _pos.Move(_dir);
-
-            _vm.OutputFunction = PaintPanel;
         }
 
         public override string PartTwo(string input)
@@ -75,10 +46,35 @@ namespace AdventOfCode.Days
             return @"C:\AdventOfCode\Day11.bmp";
         }
 
+        private long GetInput()
+        {
+            if (_panels.ContainsKey(_pos))
+            {
+                return _panels[_pos] ? 1 : 0;
+            }
+
+            return 0;
+        }
+
+        private void PaintPanel(long color)
+        {
+            _panels.SafeSet(_pos, color == 1);
+
+            _vm.OutputFunction = MoveRobot;
+        }
+
+        private void MoveRobot(long turn)
+        {
+            _dir = turn == 0 ? _dir.TurnLeft() : _dir.TurnRight();
+            _pos = _pos.Move(_dir);
+
+            _vm.OutputFunction = PaintPanel;
+        }
+
         private Color GetPixel(int x, int y)
         {
             var panelX = _panels.Min(p => p.Key.X) + x;
-            var panelY = _panels.Min(p => p.Key.Y) + y;
+            var panelY = _panels.Max(p => p.Key.Y) - y;
 
             var panelPos = new Point(panelX, panelY);
 
