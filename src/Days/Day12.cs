@@ -8,11 +8,12 @@ namespace AdventOfCode.Days
     public class Day12 : BaseDay
     {
         private List<Moon> _moons;
-        private List<List<Moon>> _seen;
+        private List<List<Moon>> _combos;
 
         public override string PartOne(string input)
         {
             _moons = input.Lines().Select(x => new Moon(x)).ToList();
+            _combos = GetMoonCombos();
 
             for (var i = 0; i < 1000; i++)
             {
@@ -38,9 +39,7 @@ namespace AdventOfCode.Days
 
         private void ProcessGravity()
         {
-            var combos = GetMoonCombos();
-
-            foreach (var c in combos)
+            foreach (var c in _combos)
             {
                 if (c.First().Position.X != c.Last().Position.X)
                 {
@@ -87,105 +86,122 @@ namespace AdventOfCode.Days
 
             foreach (var m in _moons)
             {
-                m.Position = m.Position + m.Velocity;
+                m.Position += m.Velocity;
             }
         }
 
         public override string PartTwo(string input)
         {
-            var seen = new List<long>[24];
-            var steps = new long[24];
+            var seen = new List<long[]>[3];
+            var steps = new long[3];
 
-            for (var i = 0; i < 24; i++)
+            seen[0] = new List<long[]>();
+            seen[1] = new List<long[]>();
+            seen[2] = new List<long[]>();
+
+            _moons = input.Lines().Select(x => new Moon(x)).ToList();
+            _combos = GetMoonCombos();
+            var value = GetSeenX();
+
+            Log("Processing X...");
+            while (!seen[0].Any(x => x.SequenceEqual(value)))
             {
-                _moons = input.Lines().Select(x => new Moon(x)).ToList();
-                seen[i] = new List<long>();
-                var value = GetValue(i);
+                seen[0].Add(value);
+                ProcessGravity();
+                steps[0]++;
+                value = GetSeenX();
 
-                while (!seen[i].Any(x => x == value))
+                if (steps[0] % 10000 == 0)
                 {
-                    seen[i].Add(value);
-                    ProcessGravity();
-                    steps[i]++;
-                    value = GetValue(i);
+                    Log(steps[0].ToString());
                 }
             }
 
-            var x = 0L;
+            _moons = input.Lines().Select(x => new Moon(x)).ToList();
+            _combos = GetMoonCombos();
+            value = GetSeenY();
 
-            while (!DoesDivide(x, steps))
+            Log("Processing Y...");
+            while (!seen[1].Any(x => x.SequenceEqual(value)))
             {
-                x++;
+                seen[1].Add(value);
+                ProcessGravity();
+                steps[1]++;
+                value = GetSeenY();
 
-                if (x % 100000 == 0)
+                if (steps[1] % 10000 == 0)
                 {
-                    Log(x.ToString());
+                    Log(steps[1].ToString());
                 }
             }
 
-            return x.ToString();
-        }
+            _moons = input.Lines().Select(x => new Moon(x)).ToList();
+            _combos = GetMoonCombos();
+            value = GetSeenZ();
 
-        private bool DoesDivide(long x, long[] steps)
-        {
-            foreach (var s in steps)
+            Log("Processing Z...");
+            while (!seen[2].Any(x => x.SequenceEqual(value)))
             {
-                if (x % s != 0) return false;
-            }
+                seen[2].Add(value);
+                ProcessGravity();
+                steps[2]++;
+                value = GetSeenZ();
 
-            return true;
-        }
-
-        private long GetValue(int i)
-        {
-            var moon = _moons[i / 6];
-            var item = i % 6;
-
-            return item switch
-            {
-                0 => moon.Position.X,
-                1 => moon.Position.Y,
-                2 => moon.Position.Z,
-                3 => moon.Velocity.X,
-                4 => moon.Velocity.Y,
-                5 => moon.Velocity.Z,
-                _ => throw new Exception()
-            };
-        }
-
-        private bool SeenState()
-        {
-            foreach (var s in _seen)
-            {
-                var match = true;
-
-                for (var i = 0; i < 4; i++)
+                if (steps[2] % 10000 == 0)
                 {
-                    if (s[i].Position != _moons[i].Position)
-                    {
-                        match = false;
-                        break;
-                    }
-
-                    if (s[i].Velocity != _moons[i].Velocity)
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
-                {
-                    return true;
+                    Log(steps[2].ToString());
                 }
             }
 
-            return false;
+            return $"{steps[0]} {steps[1]} {steps[2]}";
         }
 
-        private List<Moon> GetMoonState()
+        private long[] GetSeenX()
         {
-            return _moons.Select(m => m.Clone()).ToList();
+            var result = new long[8];
+
+            result[0] = _moons[0].Position.X;
+            result[1] = _moons[0].Velocity.X;
+            result[2] = _moons[1].Position.X;
+            result[3] = _moons[1].Velocity.X;
+            result[4] = _moons[2].Position.X;
+            result[5] = _moons[2].Velocity.X;
+            result[6] = _moons[3].Position.X;
+            result[7] = _moons[3].Velocity.X;
+
+            return result;
+        }
+
+        private long[] GetSeenY()
+        {
+            var result = new long[8];
+
+            result[0] = _moons[0].Position.Y;
+            result[1] = _moons[0].Velocity.Y;
+            result[2] = _moons[1].Position.Y;
+            result[3] = _moons[1].Velocity.Y;
+            result[4] = _moons[2].Position.Y;
+            result[5] = _moons[2].Velocity.Y;
+            result[6] = _moons[3].Position.Y;
+            result[7] = _moons[3].Velocity.Y;
+
+            return result;
+        }
+
+        private long[] GetSeenZ()
+        {
+            var result = new long[8];
+
+            result[0] = _moons[0].Position.Z;
+            result[1] = _moons[0].Velocity.Z;
+            result[2] = _moons[1].Position.Z;
+            result[3] = _moons[1].Velocity.Z;
+            result[4] = _moons[2].Position.Z;
+            result[5] = _moons[2].Velocity.Z;
+            result[6] = _moons[3].Position.Z;
+            result[7] = _moons[3].Velocity.Z;
+
+            return result;
         }
 
         private class Moon
