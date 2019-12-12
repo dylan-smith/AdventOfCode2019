@@ -92,19 +92,19 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var seen = new List<long[]>[3];
+            var seen = new List<(long, long, long, long, long, long, long, long)>[3];
             var steps = new long[3];
 
-            seen[0] = new List<long[]>();
-            seen[1] = new List<long[]>();
-            seen[2] = new List<long[]>();
+            seen[0] = new List<(long, long, long, long, long, long, long, long)>();
+            seen[1] = new List<(long, long, long, long, long, long, long, long)>();
+            seen[2] = new List<(long, long, long, long, long, long, long, long)>();
 
             _moons = input.Lines().Select(x => new Moon(x)).ToList();
             _combos = GetMoonCombos();
             var value = GetSeenX();
 
             Log("Processing X...");
-            while (!seen[0].Any(x => x.SequenceEqual(value)))
+            while (!seen[0].Any(x => x == value))
             {
                 seen[0].Add(value);
                 ProcessGravity();
@@ -122,7 +122,7 @@ namespace AdventOfCode.Days
             value = GetSeenY();
 
             Log("Processing Y...");
-            while (!seen[1].Any(x => x.SequenceEqual(value)))
+            while (!seen[1].Any(x => x == value))
             {
                 seen[1].Add(value);
                 ProcessGravity();
@@ -140,7 +140,7 @@ namespace AdventOfCode.Days
             value = GetSeenZ();
 
             Log("Processing Z...");
-            while (!seen[2].Any(x => x.SequenceEqual(value)))
+            while (!seen[2].Any(x => x == value))
             {
                 seen[2].Add(value);
                 ProcessGravity();
@@ -153,56 +153,43 @@ namespace AdventOfCode.Days
                 }
             }
 
-            // TODO: Punch these 3 numbers into an LCM calculator
-            return $"{steps[0]} {steps[1]} {steps[2]}";
+            return steps.LeastCommonMultiple().ToString();
         }
 
-        private long[] GetSeenX()
+        private (long, long, long, long, long, long, long, long) GetSeenX()
         {
-            var result = new long[8];
-
-            result[0] = _moons[0].Position.X;
-            result[1] = _moons[0].Velocity.X;
-            result[2] = _moons[1].Position.X;
-            result[3] = _moons[1].Velocity.X;
-            result[4] = _moons[2].Position.X;
-            result[5] = _moons[2].Velocity.X;
-            result[6] = _moons[3].Position.X;
-            result[7] = _moons[3].Velocity.X;
-
-            return result;
+            return (_moons[0].Position.X,
+                    _moons[0].Velocity.X,
+                    _moons[1].Position.X,
+                    _moons[1].Velocity.X,
+                    _moons[2].Position.X,
+                    _moons[2].Velocity.X,
+                    _moons[3].Position.X,
+                    _moons[3].Velocity.X);
         }
 
-        private long[] GetSeenY()
+        private (long, long, long, long, long, long, long, long) GetSeenY()
         {
-            var result = new long[8];
-
-            result[0] = _moons[0].Position.Y;
-            result[1] = _moons[0].Velocity.Y;
-            result[2] = _moons[1].Position.Y;
-            result[3] = _moons[1].Velocity.Y;
-            result[4] = _moons[2].Position.Y;
-            result[5] = _moons[2].Velocity.Y;
-            result[6] = _moons[3].Position.Y;
-            result[7] = _moons[3].Velocity.Y;
-
-            return result;
+            return (_moons[0].Position.Y,
+                    _moons[0].Velocity.Y,
+                    _moons[1].Position.Y,
+                    _moons[1].Velocity.Y,
+                    _moons[2].Position.Y,
+                    _moons[2].Velocity.Y,
+                    _moons[3].Position.Y,
+                    _moons[3].Velocity.Y);
         }
 
-        private long[] GetSeenZ()
+        private (long, long, long, long, long, long, long, long) GetSeenZ()
         {
-            var result = new long[8];
-
-            result[0] = _moons[0].Position.Z;
-            result[1] = _moons[0].Velocity.Z;
-            result[2] = _moons[1].Position.Z;
-            result[3] = _moons[1].Velocity.Z;
-            result[4] = _moons[2].Position.Z;
-            result[5] = _moons[2].Velocity.Z;
-            result[6] = _moons[3].Position.Z;
-            result[7] = _moons[3].Velocity.Z;
-
-            return result;
+            return (_moons[0].Position.Z,
+                    _moons[0].Velocity.Z,
+                    _moons[1].Position.Z,
+                    _moons[1].Velocity.Z,
+                    _moons[2].Position.Z,
+                    _moons[2].Velocity.Z,
+                    _moons[3].Position.Z,
+                    _moons[3].Velocity.Z);
         }
 
         private class Moon
