@@ -88,68 +88,66 @@ namespace AdventOfCode.Days
 
         private List<List<Moon>> GetMoonCombos()
         {
-            var result = new List<List<Moon>>();
-
-            result.Add(new List<Moon>() { _moons[0], _moons[1] });
-            result.Add(new List<Moon>() { _moons[0], _moons[2] });
-            result.Add(new List<Moon>() { _moons[0], _moons[3] });
-            result.Add(new List<Moon>() { _moons[1], _moons[2] });
-            result.Add(new List<Moon>() { _moons[1], _moons[3] });
-            result.Add(new List<Moon>() { _moons[2], _moons[3] });
-
-            return result;
+            return new List<List<Moon>>
+            {
+                new List<Moon>() { _moons[0], _moons[1] },
+                new List<Moon>() { _moons[0], _moons[2] },
+                new List<Moon>() { _moons[0], _moons[3] },
+                new List<Moon>() { _moons[1], _moons[2] },
+                new List<Moon>() { _moons[1], _moons[3] },
+                new List<Moon>() { _moons[2], _moons[3] }
+            };
         }
 
         private void ProcessGravity()
         {
-            foreach (var c in _combos)
-            {
-                if (c.First().Position.X != c.Last().Position.X)
-                {
-                    if (c.First().Position.X > c.Last().Position.X)
-                    {
-                        c.First().Velocity.X--;
-                        c.Last().Velocity.X++;
-                    }
-                    else
-                    {
-                        c.First().Velocity.X++;
-                        c.Last().Velocity.X--;
-                    }
-                }
-
-                if (c.First().Position.Y != c.Last().Position.Y)
-                {
-                    if (c.First().Position.Y > c.Last().Position.Y)
-                    {
-                        c.First().Velocity.Y--;
-                        c.Last().Velocity.Y++;
-                    }
-                    else
-                    {
-                        c.First().Velocity.Y++;
-                        c.Last().Velocity.Y--;
-                    }
-                }
-
-                if (c.First().Position.Z != c.Last().Position.Z)
-                {
-                    if (c.First().Position.Z > c.Last().Position.Z)
-                    {
-                        c.First().Velocity.Z--;
-                        c.Last().Velocity.Z++;
-                    }
-                    else
-                    {
-                        c.First().Velocity.Z++;
-                        c.Last().Velocity.Z--;
-                    }
-                }
-            }
+            UpdateVelocity();
 
             foreach (var m in _moons)
             {
                 m.Position += m.Velocity;
+            }
+        }
+
+        private void UpdateVelocity()
+        {
+            foreach (var c in _combos)
+            {
+                if (c[0].Position.X > c[1].Position.X)
+                {
+                    c[0].Velocity.X--;
+                    c[1].Velocity.X++;
+                }
+
+                if (c[0].Position.X < c[1].Position.X)
+                {
+                    c[0].Velocity.X++;
+                    c[1].Velocity.X--;
+                }
+
+                if (c[0].Position.Y > c[1].Position.Y)
+                {
+                    c[0].Velocity.Y--;
+                    c[1].Velocity.Y++;
+                }
+
+                if (c[0].Position.Y < c[1].Position.Y)
+                {
+                    c[0].Velocity.Y++;
+                    c[1].Velocity.Y--;
+                }
+
+                if (c[0].Position.Z > c[1].Position.Z)
+                {
+                    c[0].Velocity.Z--;
+                    c[1].Velocity.Z++;
+                }
+
+                if (c[0].Position.Z < c[1].Position.Z)
+                {
+                    c[0].Velocity.Z++;
+                    c[1].Velocity.Z--;
+                }
             }
         }
 
