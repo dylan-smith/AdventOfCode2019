@@ -206,12 +206,6 @@ namespace AdventOfCode.Days
                 Position.Z = int.Parse(a[2].Trim().ShaveLeft(2));
             }
 
-            public Moon()
-            {
-                Position = new Point3D();
-                Velocity = new Point3D();
-            }
-
             public long GetTotalEnergy()
             {
                 var potential = Math.Abs(Position.X) + Math.Abs(Position.Y) + Math.Abs(Position.Z);
