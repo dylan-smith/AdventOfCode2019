@@ -1171,6 +1171,9 @@ namespace AdventOfCode
             Z = z;
         }
 
+        public Point3D()
+        { }
+
         public Point3D(string coordinates) :
             this(long.Parse(coordinates.Words().ToList()[0]),
                  long.Parse(coordinates.Words().ToList()[1]),

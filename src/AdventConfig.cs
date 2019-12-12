@@ -3,7 +3,7 @@
     public static class AdventConfig
     {
         public static int DefaultYear = 2019;
-        public static int DefaultDay = 11;
+        public static int DefaultDay = 12;
         public static string LogFileFolder = @"C:\git\AdventOfCode\logs";
         public static string InputFileFolder = @"C:\git\AdventOfCode2019\input";
         public static string SessionCookieFile = @"C:\AoC\AoCSessionCookie.txt";
