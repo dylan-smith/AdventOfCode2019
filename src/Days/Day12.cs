@@ -92,19 +92,19 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var seen = new List<(long, long, long, long, long, long, long, long)>[3];
+            var seen = new HashSet<(long, long, long, long, long, long, long, long)>[3];
             var steps = new long[3];
 
-            seen[0] = new List<(long, long, long, long, long, long, long, long)>();
-            seen[1] = new List<(long, long, long, long, long, long, long, long)>();
-            seen[2] = new List<(long, long, long, long, long, long, long, long)>();
+            seen[0] = new HashSet<(long, long, long, long, long, long, long, long)>();
+            seen[1] = new HashSet<(long, long, long, long, long, long, long, long)>();
+            seen[2] = new HashSet<(long, long, long, long, long, long, long, long)>();
 
             _moons = input.Lines().Select(x => new Moon(x)).ToList();
             _combos = GetMoonCombos();
             var value = GetSeenX();
 
             Log("Processing X...");
-            while (!seen[0].Any(x => x == value))
+            while (!seen[0].Contains(value))
             {
                 seen[0].Add(value);
                 ProcessGravity();
@@ -122,7 +122,7 @@ namespace AdventOfCode.Days
             value = GetSeenY();
 
             Log("Processing Y...");
-            while (!seen[1].Any(x => x == value))
+            while (!seen[1].Contains(value))
             {
                 seen[1].Add(value);
                 ProcessGravity();
@@ -140,7 +140,7 @@ namespace AdventOfCode.Days
             value = GetSeenZ();
 
             Log("Processing Z...");
-            while (!seen[2].Any(x => x == value))
+            while (!seen[2].Contains(value))
             {
                 seen[2].Add(value);
                 ProcessGravity();
