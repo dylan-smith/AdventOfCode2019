@@ -23,6 +23,69 @@ namespace AdventOfCode.Days
             return _moons.Sum(m => m.GetTotalEnergy()).ToString();
         }
 
+        public override string PartTwo(string input)
+        {
+            var seen = new HashSet<(long, long, long, long, long, long, long, long)>[3];
+            var steps = new long[3];
+
+            seen[0] = new HashSet<(long, long, long, long, long, long, long, long)>();
+            seen[1] = new HashSet<(long, long, long, long, long, long, long, long)>();
+            seen[2] = new HashSet<(long, long, long, long, long, long, long, long)>();
+
+            _moons = input.Lines().Select(x => new Moon(x)).ToList();
+            _combos = GetMoonCombos();
+
+            var foundX = false;
+            var foundY = false;
+            var foundZ = false;
+
+            while (!foundX || !foundY || !foundZ)
+            {
+                if (!foundX)
+                {
+                    if (!seen[0].Contains(GetAllX()))
+                    {
+                        seen[0].Add(GetAllX());
+                        steps[0]++;
+                    }
+                    else
+                    {
+                        foundX = true;
+                    }
+                }
+
+                if (!foundY)
+                {
+                    if (!seen[1].Contains(GetAllY()))
+                    {
+                        seen[1].Add(GetAllY());
+                        steps[1]++;
+                    }
+                    else
+                    {
+                        foundY = true;
+                    }
+                }
+
+                if (!foundZ)
+                {
+                    if (!seen[2].Contains(GetAllZ()))
+                    {
+                        seen[2].Add(GetAllZ());
+                        steps[2]++;
+                    }
+                    else
+                    {
+                        foundZ = true;
+                    }
+                }
+
+                ProcessGravity();
+            }
+
+            return steps.LeastCommonMultiple().ToString();
+        }
+
         private List<List<Moon>> GetMoonCombos()
         {
             var result = new List<List<Moon>>();
@@ -90,73 +153,7 @@ namespace AdventOfCode.Days
             }
         }
 
-        public override string PartTwo(string input)
-        {
-            var seen = new HashSet<(long, long, long, long, long, long, long, long)>[3];
-            var steps = new long[3];
-
-            seen[0] = new HashSet<(long, long, long, long, long, long, long, long)>();
-            seen[1] = new HashSet<(long, long, long, long, long, long, long, long)>();
-            seen[2] = new HashSet<(long, long, long, long, long, long, long, long)>();
-
-            _moons = input.Lines().Select(x => new Moon(x)).ToList();
-            _combos = GetMoonCombos();
-            var value = GetSeenX();
-
-            Log("Processing X...");
-            while (!seen[0].Contains(value))
-            {
-                seen[0].Add(value);
-                ProcessGravity();
-                steps[0]++;
-                value = GetSeenX();
-
-                if (steps[0] % 10000 == 0)
-                {
-                    Log(steps[0].ToString());
-                }
-            }
-
-            _moons = input.Lines().Select(x => new Moon(x)).ToList();
-            _combos = GetMoonCombos();
-            value = GetSeenY();
-
-            Log("Processing Y...");
-            while (!seen[1].Contains(value))
-            {
-                seen[1].Add(value);
-                ProcessGravity();
-                steps[1]++;
-                value = GetSeenY();
-
-                if (steps[1] % 10000 == 0)
-                {
-                    Log(steps[1].ToString());
-                }
-            }
-
-            _moons = input.Lines().Select(x => new Moon(x)).ToList();
-            _combos = GetMoonCombos();
-            value = GetSeenZ();
-
-            Log("Processing Z...");
-            while (!seen[2].Contains(value))
-            {
-                seen[2].Add(value);
-                ProcessGravity();
-                steps[2]++;
-                value = GetSeenZ();
-
-                if (steps[2] % 10000 == 0)
-                {
-                    Log(steps[2].ToString());
-                }
-            }
-
-            return steps.LeastCommonMultiple().ToString();
-        }
-
-        private (long, long, long, long, long, long, long, long) GetSeenX()
+        private (long, long, long, long, long, long, long, long) GetAllX()
         {
             return (_moons[0].Position.X,
                     _moons[0].Velocity.X,
@@ -168,7 +165,7 @@ namespace AdventOfCode.Days
                     _moons[3].Velocity.X);
         }
 
-        private (long, long, long, long, long, long, long, long) GetSeenY()
+        private (long, long, long, long, long, long, long, long) GetAllY()
         {
             return (_moons[0].Position.Y,
                     _moons[0].Velocity.Y,
@@ -180,7 +177,7 @@ namespace AdventOfCode.Days
                     _moons[3].Velocity.Y);
         }
 
-        private (long, long, long, long, long, long, long, long) GetSeenZ()
+        private (long, long, long, long, long, long, long, long) GetAllZ()
         {
             return (_moons[0].Position.Z,
                     _moons[0].Velocity.Z,
@@ -199,7 +196,7 @@ namespace AdventOfCode.Days
 
             public Moon(string input)
             {
-                var a = input.ShaveLeft(1).ShaveRight(1).Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var a = input.Shave(1).Split(',', StringSplitOptions.RemoveEmptyEntries);
 
                 Position = new Point3D();
                 Velocity = new Point3D();
@@ -221,21 +218,6 @@ namespace AdventOfCode.Days
                 var kinetic = Math.Abs(Velocity.X) + Math.Abs(Velocity.Y) + Math.Abs(Velocity.Z);
 
                 return potential * kinetic;
-            }
-
-            public Moon Clone()
-            {
-                var result = new Moon();
-
-                result.Position.X = Position.X;
-                result.Position.Y = Position.Y;
-                result.Position.Z = Position.Z;
-
-                result.Velocity.X = Velocity.X;
-                result.Velocity.Y = Velocity.Y;
-                result.Velocity.Z = Velocity.Z;
-
-                return result;
             }
         }
     }

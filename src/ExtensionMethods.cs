@@ -832,6 +832,21 @@ namespace AdventOfCode
         {
             return b == 0 ? a : GreatestCommonDivisor(b, a % b);
         }
+
+        public static int LeastCommonMultiple(this IEnumerable<int> numbers)
+        {
+            return numbers.Aggregate(LeastCommonMultiple);
+        }
+
+        public static int LeastCommonMultiple(int a, int b)
+        {
+            return Math.Abs(a * b) / GreatestCommonDivisor(a, b);
+        }
+
+        public static int GreatestCommonDivisor(int a, int b)
+        {
+            return b == 0 ? a : GreatestCommonDivisor(b, a % b);
+        }
     }
 
     public static class PointExtensions
