@@ -93,24 +93,64 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            _moons = input.Lines().Select(x => new Moon(x)).ToList();
-            _seen = new List<List<Moon>>();
+            var seen = new List<long>[24];
+            var steps = new long[24];
 
-            var steps = 0;
-
-            while (!SeenState())
+            for (var i = 0; i < 24; i++)
             {
-                _seen.Add(GetMoonState());
-                ProcessGravity();
-                steps++;
+                _moons = input.Lines().Select(x => new Moon(x)).ToList();
+                seen[i] = new List<long>();
+                var value = GetValue(i);
 
-                if (steps % 10000 == 0)
+                while (!seen[i].Any(x => x == value))
                 {
-                    Log(steps.ToString());
+                    seen[i].Add(value);
+                    ProcessGravity();
+                    steps[i]++;
+                    value = GetValue(i);
                 }
             }
 
-            return steps.ToString();
+            var x = 0L;
+
+            while (!DoesDivide(x, steps))
+            {
+                x++;
+
+                if (x % 100000 == 0)
+                {
+                    Log(x.ToString());
+                }
+            }
+
+            return x.ToString();
+        }
+
+        private bool DoesDivide(long x, long[] steps)
+        {
+            foreach (var s in steps)
+            {
+                if (x % s != 0) return false;
+            }
+
+            return true;
+        }
+
+        private long GetValue(int i)
+        {
+            var moon = _moons[i / 6];
+            var item = i % 6;
+
+            return item switch
+            {
+                0 => moon.Position.X,
+                1 => moon.Position.Y,
+                2 => moon.Position.Z,
+                3 => moon.Velocity.X,
+                4 => moon.Velocity.Y,
+                5 => moon.Velocity.Z,
+                _ => throw new Exception()
+            };
         }
 
         private bool SeenState()
