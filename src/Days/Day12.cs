@@ -153,6 +153,7 @@ namespace AdventOfCode.Days
                 }
             }
 
+            // TODO: Punch these 3 numbers into an LCM calculator
             return $"{steps[0]} {steps[1]} {steps[2]}";
         }
 
