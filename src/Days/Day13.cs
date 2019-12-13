@@ -8,7 +8,7 @@ namespace AdventOfCode.Days
     [Day(2019, 13)]
     public class Day13 : BaseDay
     {
-        private List<(Point p, long tile)> _tiles = new List<(Point p, long tile)>();
+        private readonly List<(Point p, long tile)> _tiles = new List<(Point p, long tile)>();
         private long _x;
         private long _y;
         private IntCodeVM _vm;
