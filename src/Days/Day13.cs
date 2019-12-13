@@ -16,62 +16,27 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            _vm = new IntCodeVM(input);
-
-            _vm.OutputFunction = GetOutputX;
+            _vm = new IntCodeVM(input)
+            {
+                OutputFunction = GetOutputX
+            };
 
             _vm.Run();
-
-            Log(PrintGame());
 
             return _tiles.Count(x => x.tile == 2).ToString();
         }
 
-        private string PrintGame()
-        {
-            var result = string.Empty;
-
-            for (var y = 0; y <= _tiles.Max(t => t.p.Y); y++)
-            {
-                for (var x = 0; x <= _tiles.Max(t => t.p.X); x++)
-                {
-                    var tile = _tiles.FirstOrDefault(t => t.p.X == x && t.p.Y == y);
-
-                    if (tile != default)
-                    {
-                        result += tile.tile switch
-                        {
-                            0 => " ",
-                            1 => "W",
-                            2 => "B",
-                            3 => "P",
-                            4 => "x",
-                            _ => throw new Exception()
-                        };
-                    }
-                    else
-                    {
-                        result += " ";
-                    }
-                }
-
-                result += Environment.NewLine;
-            }
-
-            return result;
-        }
-
         private long GetInput()
         {
-            var paddle = _tiles.Single(t => t.tile == 3);
-            var ball = _tiles.Single(t => t.tile == 4);
+            var (p, _) = _tiles.Single(t => t.tile == 3);
+            var (b, _) = _tiles.Single(t => t.tile == 4);
 
-            if (paddle.p.X < ball.p.X)
+            if (p.X < b.X)
             {
                 return 1;
             }
 
-            if (paddle.p.X > ball.p.X)
+            if (p.X > b.X)
             {
                 return -1;
             }
@@ -118,12 +83,13 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            _vm = new IntCodeVM(input);
+            _vm = new IntCodeVM(input)
+            {
+                OutputFunction = GetOutputX,
+                InputFunction = GetInput
+            };
 
-            _vm.OutputFunction = GetOutputX;
-            _vm.InputFunction = GetInput;
             _vm.SetMemory(0, 2);
-
             _vm.Run();
 
             return _score.ToString();
