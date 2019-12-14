@@ -13,9 +13,54 @@ namespace AdventOfCode.Days
         {
             _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
 
-            var result = FindOreNeeded("FUEL", 1);
+            var needed = new Dictionary<string, int>();
+            var leftover = new Dictionary<string, int>();
+            var reaction = _reactions.Single(r => r.Output == "FUEL");
 
-            return result.ToString();
+            foreach (var i in reaction.Inputs)
+            {
+                needed.SafeIncrement(i.input, i.quantity);
+            }
+
+            while (needed.Count > 1 || needed.Keys.First() != "ORE")
+            {
+                var neededCopy = needed;
+                needed = new Dictionary<string, int>();
+
+                foreach (var n in neededCopy)
+                {
+                    if (n.Key == "ORE")
+                    {
+                        needed.SafeIncrement(n.Key, n.Value);
+                    }
+                    else
+                    {
+                        reaction = _reactions.Single(r => r.Output == n.Key);
+                        var amountNeeded = n.Value;
+
+                        if (leftover.ContainsKey(n.Key))
+                        {
+                            amountNeeded -= leftover[n.Key];
+
+                            if (amountNeeded < 0)
+                            {
+                                leftover[n.Key] = 0 - amountNeeded;
+                                amountNeeded = 0;
+                            }
+                        }
+
+                        var amount = (int)Math.Ceiling((double)amountNeeded / (double)reaction.Quantity);
+                        leftover.SafeIncrement(n.Key, (amount * reaction.Quantity) - n.Value);
+
+                        foreach (var i in reaction.Inputs)
+                        {
+                            needed.SafeIncrement(i.input, i.quantity * amount);
+                        }
+                    }
+                }
+            }
+
+            return needed["ORE"].ToString();
 
             //var needed = reactions.Single(r => r.Output == "FUEL").Inputs;
 
@@ -51,26 +96,6 @@ namespace AdventOfCode.Days
             //}
 
             //return elements.Single(e => e.element == "FUEL").oreCount.ToString();
-        }
-
-        private int FindOreNeeded(string element, int quantity)
-        {
-            if (element == "ORE")
-            {
-                return quantity;
-            }
-
-            var reaction = _reactions.Single(r => r.Output == element);
-
-            var multiple = (int)Math.Ceiling((double)quantity / (double)reaction.Quantity);
-            var result = 0;
-
-            foreach (var i in reaction.Inputs)
-            {
-                result += FindOreNeeded(i.input, i.quantity) * multiple;
-            }
-
-            return result;
         }
 
         private Reaction GetReaction(string input)

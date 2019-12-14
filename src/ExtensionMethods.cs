@@ -738,6 +738,18 @@ namespace AdventOfCode
             }
         }
 
+        public static void SafeIncrement<TKey>(this Dictionary<TKey, int> dict, TKey key, int amount)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key] += amount;
+            }
+            else
+            {
+                dict.Add(key, amount);
+            }
+        }
+
         public static void SafeDecrement<TKey>(this Dictionary<TKey, int> dict, TKey key)
         {
             if (dict.ContainsKey(key))
