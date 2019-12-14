@@ -7,37 +7,70 @@ namespace AdventOfCode.Days
     [Day(2019, 14)]
     public class Day14 : BaseDay
     {
+        private List<Reaction> _reactions;
+
         public override string PartOne(string input)
         {
-            var reactions = input.Lines().Select(x => GetReaction(x)).ToList();
+            _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
 
-            var elements = new List<(string element, double oreCount)>();
-            elements.Add(("ORE", 1));
+            var result = FindOreNeeded("FUEL", 1);
 
-            var valid = reactions.Where(r => r.Inputs.All(i => elements.Any(e => e.element == i.input)))
-                                 .Where(r => !elements.Any(e => e.element == r.Output))
-                                 .ToList();
+            return result.ToString();
 
-            while (valid.Count > 0)
+            //var needed = reactions.Single(r => r.Output == "FUEL").Inputs;
+
+            //while (needed.Count > 1 || needed[0].input != "ORE")
+            //{
+
+            //}
+
+            //var elements = new List<(string element, double oreCount)>();
+            //elements.Add(("ORE", 1));
+
+            //var valid = reactions.Where(r => r.Inputs.All(i => elements.Any(e => e.element == i.input)))
+            //                     .Where(r => !elements.Any(e => e.element == r.Output))
+            //                     .ToList();
+
+            //while (valid.Count > 0)
+            //{
+            //    foreach (var v in valid)
+            //    {
+            //        var oreCount = 0.0;
+
+            //        foreach (var i in v.Inputs)
+            //        {
+            //            oreCount += elements.Single(e => e.element == i.input).oreCount * i.quantity;
+            //        }
+
+            //        elements.Add((v.Output, oreCount / v.Quantity));
+            //    }
+
+            //    valid = reactions.Where(r => r.Inputs.All(i => elements.Any(e => e.element == i.input)))
+            //                     .Where(r => !elements.Any(e => e.element == r.Output))
+            //                     .ToList();
+            //}
+
+            //return elements.Single(e => e.element == "FUEL").oreCount.ToString();
+        }
+
+        private int FindOreNeeded(string element, int quantity)
+        {
+            if (element == "ORE")
             {
-                foreach (var v in valid)
-                {
-                    var oreCount = 0.0;
-
-                    foreach (var i in v.Inputs)
-                    {
-                        oreCount += elements.Single(e => e.element == i.input).oreCount * i.quantity;
-                    }
-
-                    elements.Add((v.Output, oreCount / v.Quantity));
-                }
-
-                valid = reactions.Where(r => r.Inputs.All(i => elements.Any(e => e.element == i.input)))
-                                 .Where(r => !elements.Any(e => e.element == r.Output))
-                                 .ToList();
+                return quantity;
             }
 
-            return elements.Single(e => e.element == "FUEL").oreCount.ToString();
+            var reaction = _reactions.Single(r => r.Output == element);
+
+            var multiple = (int)Math.Ceiling((double)quantity / (double)reaction.Quantity);
+            var result = 0;
+
+            foreach (var i in reaction.Inputs)
+            {
+                result += FindOreNeeded(i.input, i.quantity) * multiple;
+            }
+
+            return result;
         }
 
         private Reaction GetReaction(string input)
