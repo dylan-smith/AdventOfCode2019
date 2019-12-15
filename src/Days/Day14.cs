@@ -50,7 +50,7 @@ namespace AdventOfCode.Days
                         }
 
                         var amount = (int)Math.Ceiling((double)amountNeeded / (double)reaction.Quantity);
-                        leftover.SafeIncrement(n.Key, (amount * reaction.Quantity) - n.Value);
+                        leftover.SafeIncrement(n.Key, (amount * reaction.Quantity) - amountNeeded);
 
                         foreach (var i in reaction.Inputs)
                         {
