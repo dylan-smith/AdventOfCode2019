@@ -9,12 +9,11 @@ namespace AdventOfCode.Days
     {
         private List<Reaction> _reactions;
         private Dictionary<string, long> _chemicals = new Dictionary<string, long>();
+        private readonly long _startOre = 1000000000000;
 
         public override string PartOne(string input)
         {
-            _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
-            InitializeChemicals();
-            var actions = new List<Reaction>();
+            InitializeData(input);
 
             var reset = false;
             
@@ -29,37 +28,49 @@ namespace AdventOfCode.Days
                     {
                         if (!reset && r.Inputs.All(i => _chemicals[i.input] >= i.quantity))
                         {
-                            actions.Add(r);
                             PerformReaction(r);
                             reset = true;
                         }
                     }
 
                     //useful = useful.SelectMany(x => x.Inputs.Where(i => i.input != "ORE").Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
-                    useful = useful.SelectMany(x => x.Inputs.Where(i => _chemicals[i.input] < i.quantity).Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
+                    //useful = useful.SelectMany(x => x.Inputs.Where(i => _chemicals[i.input] < i.quantity).Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
+                    useful = useful.SelectMany(x => x.InputReactions).Where(x => _chemicals[x.reaction.Output] < x.quantity).Select(x => x.reaction).ToList();
                 }
             }
 
-            return (1000000000000 - _chemicals["ORE"]).ToString();
+            return (_startOre - _chemicals["ORE"]).ToString();
         }
 
-        private void InitializeChemicals()
+        private void InitializeData(string input)
         {
+            _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
+
             foreach (var r in _reactions)
             {
                 _chemicals.Add(r.Output, 0);
             }
 
-            _chemicals.Add("ORE", 1000000000);
+            _chemicals.Add("ORE", _startOre);
+
+            
+
+            foreach (var r in _reactions)
+            {
+                foreach (var i in r.Inputs.Where(x => x.input != "ORE"))
+                {
+                    r.InputReactions.Add((_reactions.Single(r => r.Output == i.input), i.quantity));
+                }
+            }
         }
 
         private void PerformReaction(Reaction reaction)
         {
-            _chemicals[reaction.Output] += reaction.Quantity * 100;
+            _chemicals[reaction.Output] += reaction.Quantity;
 
             foreach (var (quantity, input) in reaction.Inputs)
             {
-                _chemicals[input] -= quantity * 100;
+                _chemicals[input] -= quantity;
             }
         }
 
@@ -86,16 +97,7 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
-            InitializeChemicals();
-
-            foreach (var r in _reactions)
-            {
-                foreach (var i in r.Inputs.Where(x => x.input != "ORE"))
-                {
-                    r.InputReactions.Add((_reactions.Single(r => r.Output == i.input), i.quantity));
-                }
-            }
+            InitializeData(input);
 
             var reset = true;
 
