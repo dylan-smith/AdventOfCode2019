@@ -15,20 +15,28 @@ namespace AdventOfCode.Days
         private Point? _oxygen = null;
         private Point _next;
         private List<Direction> _currentPath;
+        private Action HitWall;
 
         public override string PartOne(string input)
         {
-            _vm = new IntCodeVM(input);
+            FindOxygen(input);
+            var path = FindShortestValidPath(input, new Point(0, 0), _oxygen.Value);
 
-            _vm.InputFunction = BotInput;
-            _vm.OutputFunction = BotOutput;
+            return path.Count.ToString();
+        }
+
+        private void FindOxygen(string input)
+        {
+            _vm = new IntCodeVM(input)
+            {
+                InputFunction = BotInput,
+                OutputFunction = BotOutput
+            };
 
             _open.Add(_bot);
+            HitWall = () => _currentPath = null;
 
             _vm.Run();
-
-            return Environment.NewLine + PrintMap();
-            //return FindShortestDistance(new Point(0, 0), _oxygen.Value).ToString();
         }
 
         private string PrintMap()
@@ -66,15 +74,13 @@ namespace AdventOfCode.Days
             if (output == 0)
             {
                 _walls.Add(_next);
-                Log($"Found wall ({_next.X}, {_next.Y})");
-                _currentPath = null;
+                HitWall();
             }
 
             if (output == 1)
             {
                 _bot = _next;
                 _open.Add(_bot);
-                Log($"Bot -> ({_bot.X}, {_bot.Y})");
             }
 
             if (output == 2)
@@ -89,7 +95,7 @@ namespace AdventOfCode.Days
         {
             if (_currentPath == null || _currentPath.Count == 0)
             {
-                _currentPath = FindPath();
+                _currentPath = FindPathToExplore();
             }
 
             _next = _bot.Move(_currentPath[0]);
@@ -111,77 +117,69 @@ namespace AdventOfCode.Days
             };
         }
 
-        private Direction NumberToDirection(long number)
-        {
-            return number switch
-            {
-                1 => Direction.Up,
-                2 => Direction.Down,
-                3 => Direction.Left,
-                4 => Direction.Right,
-                _ => throw new ArgumentException()
-            };
-        }
-
-        private long FindShortestDistance(Point start, Point end)
-        {
-            var seen = new HashSet<Point>();
-            var current = new HashSet<Point>();
-            var distance = 0;
-
-            seen.Add(start);
-            current.Add(start);
-
-            while (true)
-            {
-                var newPoints = new HashSet<Point>();
-                distance++;
-
-                foreach (var p in current)
-                {
-                    foreach (Direction move in Enum.GetValues(typeof(Direction)))
-                    {
-                        var location = p.Move(move);
-
-                        if (!_walls.Contains(location) && !seen.Contains(location))
-                        {
-                            newPoints.Add(location);
-                            seen.Add(location);
-                        }
-                    }
-                }
-
-                if (newPoints.Contains(end))
-                {
-                    return distance;
-                }
-
-                current = newPoints;
-            }
-        }
-
-        private List<Direction> FindPath()
+        private List<Direction> FindShortestPossiblePath(Point start, Point end)
         {
             var seen = new HashSet<Point>();
             var paths = new List<(List<Direction> path, Point location)>();
 
-            //var moves = new List<Direction>() {
-            //    Direction.Up,
-            //    Direction.Down,
-            //    Direction.Right,
-            //    Direction.Left
-            //};
+            paths.Add((new List<Direction>(), start));
+            seen.Add(start);
 
-            //foreach (var move in moves)
-            //{
-            //    var location = _bot.Move(move);
+            while (!seen.Any(s => s == end))
+            {
+                var oldPaths = paths.Select(p => p).ToList();
+                paths = new List<(List<Direction> path, Point location)>();
 
-            //    if (!_walls.Contains(location) && !seen.Contains(location))
-            //    {
-            //        paths.Add((new List<Direction>() { move }, location));
-            //        seen.Add(location);
-            //    }
-            //}
+                foreach (var path in oldPaths)
+                {
+                    foreach (Direction move in Enum.GetValues(typeof(Direction)))
+                    {
+                        var location = path.location.Move(move);
+
+                        if (!_walls.Contains(location) && !seen.Contains(location))
+                        {
+                            var newPath = path.path.Select(p => p).ToList();
+                            newPath.Add(move);
+
+                            paths.Add((newPath, location));
+                            seen.Add(location);
+                        }
+                    }
+                }
+            }
+
+            return paths.First(p => p.location == end).path;
+        }
+
+        private List<Direction> FindShortestValidPath(string input, Point start, Point end)
+        {
+            List<Direction> result = null;
+            _bot = start;
+
+            while (_bot != end)
+            {
+                _vm = new IntCodeVM(input)
+                {
+                    InputFunction = BotInput,
+                    OutputFunction = BotOutput
+                };
+
+                _currentPath = FindShortestPossiblePath(start, end);
+                result = _currentPath.Select(x => x).ToList();
+
+                _bot = start;
+                HitWall = () => _vm.Halt();
+
+                _vm.Run();
+            }
+
+            return result;
+        }
+
+        private List<Direction> FindPathToExplore()
+        {
+            var seen = new HashSet<Point>();
+            var paths = new List<(List<Direction> path, Point location)>();
 
             paths.Add((new List<Direction>(), _bot));
 
