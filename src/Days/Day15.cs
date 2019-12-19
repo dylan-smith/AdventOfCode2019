@@ -19,13 +19,28 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            FindOxygen(input);
+            //FindOxygen(input);
+            ExploreMap(input);
             var path = FindShortestValidPath(input, new Point(0, 0), _oxygen.Value);
 
             return path.Count.ToString();
         }
 
         private void FindOxygen(string input)
+        {
+            _vm = new IntCodeVM(input)
+            {
+                InputFunction = BotInput,
+                OutputFunction = BotOutput
+            };
+
+            _open.Add(_bot);
+            HitWall = () => _currentPath = null;
+
+            _vm.Run();
+        }
+
+        private void ExploreMap(string input)
         {
             _vm = new IntCodeVM(input)
             {
@@ -87,7 +102,7 @@ namespace AdventOfCode.Days
             {
                 _bot = _next;
                 _oxygen = _next;
-                _vm.Halt();
+                _open.Add(_bot);
             }
         }
 
@@ -96,6 +111,12 @@ namespace AdventOfCode.Days
             if (_currentPath == null || _currentPath.Count == 0)
             {
                 _currentPath = FindPathToExplore();
+
+                if (_currentPath == null)
+                {
+                    _vm.Halt();
+                    return 0;
+                }
             }
 
             _next = _bot.Move(_currentPath[0]);
@@ -183,30 +204,36 @@ namespace AdventOfCode.Days
 
             paths.Add((new List<Direction>(), _bot));
 
-            while (!seen.Any(s => !_open.Contains(s)))
+            while (!seen.Any(s => !_open.Contains(s)) && paths.Count > 0)
             {
-                var oldPaths = paths.Select(p => p).ToList();
-                paths = new List<(List<Direction> path, Point location)>();
+                paths = IncrementPaths(paths, seen);
+            }
 
-                foreach (var path in oldPaths)
+            return paths.FirstOrDefault(p => !_open.Contains(p.location)).path;
+        }
+
+        private List<(List<Direction> path, Point location)> IncrementPaths(List<(List<Direction> path, Point location)> paths, HashSet<Point> seen)
+        {
+            var newPaths = new List<(List<Direction> path, Point location)>();
+
+            foreach (var path in paths)
+            {
+                foreach (Direction move in Enum.GetValues(typeof(Direction)))
                 {
-                    foreach (Direction move in Enum.GetValues(typeof(Direction)))
+                    var location = path.location.Move(move);
+
+                    if (!_walls.Contains(location) && !seen.Contains(location))
                     {
-                        var location = path.location.Move(move);
+                        var newPath = path.path.Select(p => p).ToList();
+                        newPath.Add(move);
 
-                        if (!_walls.Contains(location) && !seen.Contains(location))
-                        {
-                            var newPath = path.path.Select(p => p).ToList();
-                            newPath.Add(move);
-
-                            paths.Add((newPath, location));
-                            seen.Add(location);
-                        }
+                        newPaths.Add((newPath, location));
+                        seen.Add(location);
                     }
                 }
             }
 
-            return paths.First(p => !_open.Contains(p.location)).path;
+            return newPaths;
         }
 
         public override string PartTwo(string input)
