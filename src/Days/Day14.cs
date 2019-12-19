@@ -23,23 +23,18 @@ namespace AdventOfCode.Days
         {
             InitializeData(input);
 
-            Log($"Making FUEL in batches of 10000000...");
-            while (MakeFuel(10000000)) { };
+            var batchSize = 10000000;
 
-            Log("Converting back to ORE...");
-            ReverseReactions();
+            while (batchSize > 1)
+            {
+                Log($"Making FUEL in batches of {batchSize}...");
+                while (MakeFuel(batchSize)) { };
 
-            Log($"Making FUEL in batches of 10000...");
-            while (MakeFuel(10000)) { };
+                Log("Converting back to ORE...");
+                ReverseReactions();
 
-            Log("Converting back to ORE...");
-            ReverseReactions();
-
-            Log($"Making FUEL in batches of 100...");
-            while (MakeFuel(100)) { };
-
-            Log("Converting back to ORE...");
-            ReverseReactions();
+                batchSize /= 100;
+            }
 
             Log($"Making FUEL in batches of 1...");
             while (MakeFuel(1)) { };
