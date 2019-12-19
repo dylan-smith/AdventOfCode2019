@@ -194,7 +194,27 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            throw new NotImplementedException();
+            ExploreMap(input);
+
+            var oxygens = new HashSet<Point>();
+            var minutes = 0;
+
+            oxygens.Add(_oxygen.Value);
+
+            while (oxygens.Count < _open.Count)
+            {
+                var newOxygens = new HashSet<Point>();
+
+                foreach (var o in oxygens)
+                {
+                    newOxygens.AddRange(o.GetNeighbors(false).Where(n => _open.Contains(n)).ToList());
+                }
+
+                oxygens.AddRange(newOxygens);
+                minutes++;
+            }
+
+            return minutes.ToString();
         }
 
         public class IntCodeVM
