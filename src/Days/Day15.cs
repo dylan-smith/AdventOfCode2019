@@ -15,29 +15,11 @@ namespace AdventOfCode.Days
         private Point? _oxygen = null;
         private Point _next;
         private List<Direction> _currentPath;
-        private Action HitWall;
 
         public override string PartOne(string input)
         {
-            //FindOxygen(input);
             ExploreMap(input);
-            var path = FindShortestValidPath(input, new Point(0, 0), _oxygen.Value);
-
-            return path.Count.ToString();
-        }
-
-        private void FindOxygen(string input)
-        {
-            _vm = new IntCodeVM(input)
-            {
-                InputFunction = BotInput,
-                OutputFunction = BotOutput
-            };
-
-            _open.Add(_bot);
-            HitWall = () => _currentPath = null;
-
-            _vm.Run();
+            return FindShortestPath(new Point(0, 0), _oxygen.Value).Count.ToString();
         }
 
         private void ExploreMap(string input)
@@ -49,7 +31,6 @@ namespace AdventOfCode.Days
             };
 
             _open.Add(_bot);
-            HitWall = () => _currentPath = null;
 
             _vm.Run();
         }
@@ -89,7 +70,7 @@ namespace AdventOfCode.Days
             if (output == 0)
             {
                 _walls.Add(_next);
-                HitWall();
+                _currentPath = null;
             }
 
             if (output == 1)
@@ -138,7 +119,7 @@ namespace AdventOfCode.Days
             };
         }
 
-        private List<Direction> FindShortestPossiblePath(Point start, Point end)
+        private List<Direction> FindShortestPath(Point start, Point end)
         {
             var seen = new HashSet<Point>();
             var paths = new List<(List<Direction> path, Point location)>();
@@ -170,31 +151,6 @@ namespace AdventOfCode.Days
             }
 
             return paths.First(p => p.location == end).path;
-        }
-
-        private List<Direction> FindShortestValidPath(string input, Point start, Point end)
-        {
-            List<Direction> result = null;
-            _bot = start;
-
-            while (_bot != end)
-            {
-                _vm = new IntCodeVM(input)
-                {
-                    InputFunction = BotInput,
-                    OutputFunction = BotOutput
-                };
-
-                _currentPath = FindShortestPossiblePath(start, end);
-                result = _currentPath.Select(x => x).ToList();
-
-                _bot = start;
-                HitWall = () => _vm.Halt();
-
-                _vm.Run();
-            }
-
-            return result;
         }
 
         private List<Direction> FindPathToExplore()
