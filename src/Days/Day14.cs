@@ -7,70 +7,46 @@ namespace AdventOfCode.Days
     [Day(2019, 14)]
     public class Day14 : BaseDay
     {
-        private List<Reaction> _reactions;
+        private Dictionary<string, Reaction> _reactions;
         private Dictionary<string, long> _chemicals = new Dictionary<string, long>();
         private readonly long _startOre = 1000000000000;
 
         public override string PartOne(string input)
         {
             InitializeData(input);
-
-            var reset = false;
-            
-            while (_chemicals["FUEL"] == 0)
-            {
-                reset = false;
-                var useful = _reactions.Where(r => r.Output == "FUEL").ToList();
-
-                while (useful.Any() && !reset)
-                {
-                    foreach (var r in useful)
-                    {
-                        if (!reset && r.Inputs.All(i => _chemicals[i.input] >= i.quantity))
-                        {
-                            PerformReaction(r);
-                            reset = true;
-                        }
-                    }
-
-                    //useful = useful.SelectMany(x => x.Inputs.Where(i => i.input != "ORE").Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
-                    //useful = useful.SelectMany(x => x.Inputs.Where(i => _chemicals[i.input] < i.quantity).Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
-                    useful = useful.SelectMany(x => x.InputReactions).Where(x => _chemicals[x.reaction.Output] < x.quantity).Select(x => x.reaction).ToList();
-                }
-            }
+            MakeFuel(1);
 
             return (_startOre - _chemicals["ORE"]).ToString();
         }
 
         private void InitializeData(string input)
         {
-            _reactions = input.Lines().Select(x => GetReaction(x)).ToList();
+            _reactions = new Dictionary<string, Reaction>();
+            input.Lines().Select(x => GetReaction(x)).ToList().ForEach(x => _reactions.Add(x.Output, x));
 
             foreach (var r in _reactions)
             {
-                _chemicals.Add(r.Output, 0);
+                _chemicals.Add(r.Key, 0);
             }
 
             _chemicals.Add("ORE", _startOre);
 
-            
-
             foreach (var r in _reactions)
             {
-                foreach (var i in r.Inputs.Where(x => x.input != "ORE"))
+                foreach (var i in r.Value.Inputs.Where(x => x.input != "ORE"))
                 {
-                    r.InputReactions.Add((_reactions.Single(r => r.Output == i.input), i.quantity));
+                    r.Value.InputReactions.Add((_reactions[i.input], i.quantity));
                 }
             }
         }
 
-        private void PerformReaction(Reaction reaction)
+        private void PerformReaction(Reaction reaction, long count)
         {
-            _chemicals[reaction.Output] += reaction.Quantity;
+            _chemicals[reaction.Output] += reaction.Quantity * count;
 
             foreach (var (quantity, input) in reaction.Inputs)
             {
-                _chemicals[input] -= quantity;
+                _chemicals[input] -= quantity * count;
             }
         }
 
@@ -82,14 +58,14 @@ namespace AdventOfCode.Days
             var result = new Reaction
             {
                 Output = right.Words().ElementAt(1),
-                Quantity = int.Parse(right.Words().ElementAt(0))
+                Quantity = long.Parse(right.Words().ElementAt(0))
             };
 
             var inputs = left.Words().ToList();
 
             for (var i = 0; i < inputs.Count; i += 2)
             {
-                result.Inputs.Add((int.Parse(inputs[i]), inputs[i + 1]));
+                result.Inputs.Add((long.Parse(inputs[i]), inputs[i + 1]));
             }
 
             return result;
@@ -99,12 +75,38 @@ namespace AdventOfCode.Days
         {
             InitializeData(input);
 
+            Log($"Making FUEL in batches of 10000000...");
+            while (MakeFuel(10000000)) { };
+
+            Log("Converting back to ORE...");
+            ReverseReactions();
+
+            Log($"Making FUEL in batches of 10000...");
+            while (MakeFuel(10000)) { };
+
+            Log("Converting back to ORE...");
+            ReverseReactions();
+
+            Log($"Making FUEL in batches of 100...");
+            while (MakeFuel(100)) { };
+
+            Log("Converting back to ORE...");
+            ReverseReactions();
+
+            Log($"Making FUEL in batches of 1...");
+            while (MakeFuel(1)) { };
+
+            return _chemicals["FUEL"].ToString();
+        }
+
+        private bool MakeFuel(long batchSize)
+        {
             var reset = true;
 
             while (reset)
             {
                 reset = false;
-                var useful = _reactions.Where(r => r.Output == "FUEL").ToList();
+                var useful = _reactions.Where(r => r.Key == "FUEL").Select(r => r.Value).ToList();
 
                 while (useful.Any() && !reset)
                 {
@@ -112,25 +114,69 @@ namespace AdventOfCode.Days
                     {
                         if (!reset && r.Inputs.All(i => _chemicals[i.input] >= i.quantity))
                         {
-                            PerformReaction(r);
+                            var count = GetMaxReactions(r, batchSize);
+                            PerformReaction(r, count);
+
+                            if (r.Output == "FUEL")
+                            {
+                                return true;
+                            }
+
                             reset = true;
                         }
                     }
 
-                    //useful = useful.SelectMany(x => x.Inputs.Where(i => i.input != "ORE" && _chemicals[i.input] < i.quantity).Select(i => _reactions.Single(r => r.Output == i.input))).ToList();
                     useful = useful.SelectMany(x => x.InputReactions).Where(x => _chemicals[x.reaction.Output] < x.quantity).Select(x => x.reaction).ToList();
                 }
             }
 
-            return _chemicals["FUEL"].ToString();
+            return false;
+        }
+
+        private void ReverseReactions()
+        {
+            var repeat = true;
+            var chems = _chemicals.Where(x => x.Key != "FUEL" && x.Key != "ORE").Select(c => c.Key).ToList();
+
+            while (repeat)
+            {
+                repeat = false;
+
+                foreach (var c in chems)
+                {
+                    if (_chemicals[c] >= _reactions[c].Quantity)
+                    {
+                        var count = _chemicals[c] / _reactions[c].Quantity;
+                        PerformReaction(_reactions[c], -count);
+                        repeat = true;
+                    }
+                }
+            }
+        }
+
+        private long GetMaxReactions(Reaction reaction, long max)
+        {
+            var result = max;
+
+            foreach (var (quantity, input) in reaction.Inputs)
+            {
+                var count = _chemicals[input] / quantity;
+
+                if (count < result)
+                {
+                    result = count;
+                }
+            }
+
+            return result;
         }
 
         private class Reaction
         {
-            public List<(int quantity, string input)> Inputs { get; set; } = new List<(int quantity, string input)>();
+            public List<(long quantity, string input)> Inputs { get; set; } = new List<(long quantity, string input)>();
             public string Output { get; set; }
-            public int Quantity { get; set; }
-            public List<(Reaction reaction, int quantity)> InputReactions { get; set; } = new List<(Reaction, int)>();
+            public long Quantity { get; set; }
+            public List<(Reaction reaction, long quantity)> InputReactions { get; set; } = new List<(Reaction, long)>();
         }
     }
 }
