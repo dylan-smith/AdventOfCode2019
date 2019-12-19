@@ -31,7 +31,7 @@
             <TextBox Text="{Binding InputText}" Grid.Column="0"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,40,10,10" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True"/>
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,40,0,10" />
             <Label Content="Output" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-            <local:ScrollingTextBox Text="{Binding OutputText}" Grid.Column="2" IsReadOnly="True" HorizontalAlignment="Stretch" Margin="10,40,10,10" TextWrapping="NoWrap" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True"/>
+            <local:ScrollingTextBox Text="{Binding OutputText}" Grid.Column="2" IsReadOnly="True" HorizontalAlignment="Stretch" Margin="10,40,10,10" TextWrapping="NoWrap" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas"/>
         </Grid>
         
     </Grid>
