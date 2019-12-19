@@ -45,7 +45,7 @@ namespace AdventOfCode.Days
         private void InitializeData(string input)
         {
             _reactions = new Dictionary<string, Reaction>();
-            input.Lines().Select(x => GetReaction(x)).ForEach(x => _reactions.Add(x.Output, x));
+            input.Lines().Select(x => ParseReaction(x)).ForEach(x => _reactions.Add(x.Output, x));
 
             foreach (var r in _reactions)
             {
@@ -65,7 +65,7 @@ namespace AdventOfCode.Days
             }
         }
 
-        private Reaction GetReaction(string input)
+        private Reaction ParseReaction(string input)
         {
             var left = input.Split("=>")[0];
             var right = input.Split("=>")[1];
