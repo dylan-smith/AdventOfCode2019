@@ -13,7 +13,7 @@ namespace AdventOfCode.Days
 
             for (var p = 0; p < 100; p++)
             {
-                signal = ProcessPhase(signal).ToList();
+                signal = ProcessPhase2(signal);
             }
 
             return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
@@ -24,26 +24,69 @@ namespace AdventOfCode.Days
             var baseSignal = input.Trim().Select(x => int.Parse(x.ToString())).ToList();
             var signal = baseSignal.Select(x => x).ToList();
 
-            for (var i = 0; i < 9999; i++)
+            for (var i = 0; i < 99; i++)
             {
                 signal.AddRange(baseSignal);
             }
 
             for (var p = 0; p < 100; p++)
             {
-                Log($"Phase {p}");
-                signal = ProcessPhase2(signal).ToList();
+                Log($"{p}");
+                signal = ProcessPhase2(signal);
             }
 
             return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
+
+            //var messageLocation = int.Parse(string.Concat(input.Take(7)));
+            //var importantPositions = new Dictionary<int, List<int>>();
+
+            //var positions = new List<int>(8);
+
+            //for (var i = 0; i < 8; i++)
+            //{
+            //    positions.Add(messageLocation + i);
+            //}
+
+            //importantPositions.Add(99, positions);
+
+            //for (var p = 98; p >= 0; p--)
+            //{
+            //    importantPositions.Add(p, GetImportantPositions(importantPositions[p + 1], signal.Count).Distinct().ToList());
+            //}
+
+            //return "foo";
+
+            //for (var p = 0; p < 100; p++)
+            //{
+            //    Log($"Phase {p}");
+            //    signal = ProcessPhase2(signal).ToList();
+            //}
+
+            //return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
+        }
+
+        private IEnumerable<int> GetImportantPositions(List<int> positions, int length)
+        {
+            foreach (var p in positions)
+            {
+                var pattern = GetPattern(p, length);
+
+                for (var i = 0; i < pattern.Count; i++)
+                {
+                    if (pattern[i] != 0)
+                    {
+                        yield return i;
+                    }
+                }
+            }
         }
 
         private IEnumerable<int> ProcessPhase(List<int> signal)
         {
             for (var i = 0; i < signal.Count; i++)
             {
-                Log($"   {i}");
-                yield return TransformElement(signal, i + 1);
+                //Log($"   {i}");
+                yield return TransformElement2(signal, i + 1);
             }
         }
 
@@ -56,7 +99,6 @@ namespace AdventOfCode.Days
 
             for (var i = signal.Count - 1; i >= (signal.Count / 2); i--)
             { 
-                //Log($"   {i}");
                 sum += signal[i];
                 result[i] = sum % 10;
             }
@@ -84,8 +126,7 @@ namespace AdventOfCode.Days
 
             for (var i = 0; i <= pos; i++)
             {
-                Log($"   {i}");
-                result[i] = TransformElement(signal, i + 1);
+                result[i] = TransformElement2(signal, i + 1);
             }
 
             return result;
@@ -98,6 +139,34 @@ namespace AdventOfCode.Days
             var value = signal.Zip(pattern, (a, b) => a * b).Sum();
 
             return Math.Abs(value) % 10;
+        }
+
+        private int TransformElement2(List<int> signal, int position)
+        {
+            var sum = 0;
+            var multiplier = -1;
+            var stop = 0;
+
+            while (stop < signal.Count)
+            {
+                multiplier += 2;
+                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Count);
+
+                for (var i = (position * multiplier) - 1; i < stop; i++)
+                {
+                    sum += signal[i];
+                }
+
+                multiplier += 2;
+                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Count);
+
+                for (var i = (position * multiplier) - 1; i < stop; i++)
+                {
+                    sum -= signal[i];
+                }
+            }
+
+            return Math.Abs(sum) % 10;
         }
 
         private List<int> GetPattern(int position, int length)
