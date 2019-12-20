@@ -38,54 +38,12 @@ namespace AdventOfCode.Days
             return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
 
             //var messageLocation = int.Parse(string.Concat(input.Take(7)));
-            //var importantPositions = new Dictionary<int, List<int>>();
-
-            //var positions = new List<int>(8);
-
-            //for (var i = 0; i < 8; i++)
-            //{
-            //    positions.Add(messageLocation + i);
-            //}
-
-            //importantPositions.Add(99, positions);
-
-            //for (var p = 98; p >= 0; p--)
-            //{
-            //    importantPositions.Add(p, GetImportantPositions(importantPositions[p + 1], signal.Count).Distinct().ToList());
-            //}
-
-            //return "foo";
-
-            //for (var p = 0; p < 100; p++)
-            //{
-            //    Log($"Phase {p}");
-            //    signal = ProcessPhase2(signal).ToList();
-            //}
-
-            //return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
-        }
-
-        private IEnumerable<int> GetImportantPositions(List<int> positions, int length)
-        {
-            foreach (var p in positions)
-            {
-                var pattern = GetPattern(p, length);
-
-                for (var i = 0; i < pattern.Count; i++)
-                {
-                    if (pattern[i] != 0)
-                    {
-                        yield return i;
-                    }
-                }
-            }
         }
 
         private IEnumerable<int> ProcessPhase(List<int> signal)
         {
             for (var i = 0; i < signal.Count; i++)
             {
-                //Log($"   {i}");
                 yield return TransformElement2(signal, i + 1);
             }
         }
