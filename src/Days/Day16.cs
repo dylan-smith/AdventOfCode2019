@@ -9,7 +9,7 @@ namespace AdventOfCode.Days
     {
         public override string PartOne(string input)
         {
-            var signal = input.Trim().Select(x => int.Parse(x.ToString())).ToList();
+            var signal = input.Trim().Select(x => int.Parse(x.ToString())).ToArray();
 
             for (var p = 0; p < 100; p++)
             {
@@ -21,12 +21,12 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var baseSignal = input.Trim().Select(x => int.Parse(x.ToString())).ToList();
-            var signal = baseSignal.Select(x => x).ToList();
+            var baseSignal = input.Trim().Select(x => int.Parse(x.ToString())).ToArray();
+            var signal = new int[baseSignal.Length * 1000];
 
-            for (var i = 0; i < 99; i++)
+            for (var i = 0; i < 1000; i++)
             {
-                signal.AddRange(baseSignal);
+                baseSignal.CopyTo(signal, i * baseSignal.Length);
             }
 
             for (var p = 0; p < 100; p++)
@@ -40,36 +40,34 @@ namespace AdventOfCode.Days
             //var messageLocation = int.Parse(string.Concat(input.Take(7)));
         }
 
-        private IEnumerable<int> ProcessPhase(List<int> signal)
-        {
-            for (var i = 0; i < signal.Count; i++)
-            {
-                yield return TransformElement2(signal, i + 1);
-            }
-        }
+        //private IEnumerable<int> ProcessPhase(List<int> signal)
+        //{
+        //    for (var i = 0; i < signal.Count; i++)
+        //    {
+        //        yield return TransformElement2(signal, i + 1);
+        //    }
+        //}
 
-        private List<int> ProcessPhase2(List<int> signal)
+        private int[] ProcessPhase2(int[] signal)
         {
-            var result = new List<int>(signal.Count);
-            result.Initialize(0, signal.Count);
-
+            var result = new int[signal.Length];
             var sum = 0;
 
-            for (var i = signal.Count - 1; i >= (signal.Count / 2); i--)
+            for (var i = signal.Length - 1; i >= (signal.Length / 2); i--)
             { 
                 sum += signal[i];
                 result[i] = sum % 10;
             }
 
-            sum -= signal[signal.Count - 1];
-            sum += signal[(signal.Count / 2) - 1];
-            result[(signal.Count / 2) - 1] = sum % 10;
+            sum -= signal[signal.Length - 1];
+            sum += signal[(signal.Length / 2) - 1];
+            result[(signal.Length / 2) - 1] = sum % 10;
 
-            var pos = (signal.Count / 2) - 2;
-            var val1 = signal.Count - 2;
-            var val2 = signal.Count - 3;
+            var pos = (signal.Length / 2) - 2;
+            var val1 = signal.Length - 2;
+            var val2 = signal.Length - 3;
 
-            while (signal.Count - val2 <= pos + 1)
+            while (signal.Length - val2 <= pos + 1)
             {
                 sum -= signal[val1];
                 sum -= signal[val2];
@@ -90,25 +88,25 @@ namespace AdventOfCode.Days
             return result;
         }
 
-        private int TransformElement(List<int> signal, int position)
-        {
-            var pattern = GetPattern(position, signal.Count);
+        //private int TransformElement(List<int> signal, int position)
+        //{
+        //    var pattern = GetPattern(position, signal.Count);
 
-            var value = signal.Zip(pattern, (a, b) => a * b).Sum();
+        //    var value = signal.Zip(pattern, (a, b) => a * b).Sum();
 
-            return Math.Abs(value) % 10;
-        }
+        //    return Math.Abs(value) % 10;
+        //}
 
-        private int TransformElement2(List<int> signal, int position)
+        private int TransformElement2(int[] signal, int position)
         {
             var sum = 0;
             var multiplier = -1;
             var stop = 0;
 
-            while (stop < signal.Count)
+            while (stop < signal.Length)
             {
                 multiplier += 2;
-                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Count);
+                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Length);
 
                 for (var i = (position * multiplier) - 1; i < stop; i++)
                 {
@@ -116,7 +114,7 @@ namespace AdventOfCode.Days
                 }
 
                 multiplier += 2;
-                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Count);
+                stop = Math.Min((position * (multiplier + 1)) - 1, signal.Length);
 
                 for (var i = (position * multiplier) - 1; i < stop; i++)
                 {
@@ -127,21 +125,21 @@ namespace AdventOfCode.Days
             return Math.Abs(sum) % 10;
         }
 
-        private List<int> GetPattern(int position, int length)
-        {
-            var basePattern = new List<int>();
+        //private List<int> GetPattern(int position, int length)
+        //{
+        //    var basePattern = new List<int>();
 
-            basePattern.AddMany(0, position);
-            basePattern.AddMany(1, position);
-            basePattern.AddMany(0, position);
-            basePattern.AddMany(-1, position);
+        //    basePattern.AddMany(0, position);
+        //    basePattern.AddMany(1, position);
+        //    basePattern.AddMany(0, position);
+        //    basePattern.AddMany(-1, position);
 
-            while (basePattern.Count < (length + 1))
-            {
-                basePattern.AddRange(basePattern);
-            }
+        //    while (basePattern.Count < (length + 1))
+        //    {
+        //        basePattern.AddRange(basePattern);
+        //    }
 
-            return basePattern.Skip(1).Take(length).ToList();
-        }
+        //    return basePattern.Skip(1).Take(length).ToList();
+        //}
     }
 }
