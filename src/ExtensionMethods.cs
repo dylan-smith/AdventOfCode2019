@@ -859,6 +859,14 @@ namespace AdventOfCode
         {
             return b == 0 ? a : GreatestCommonDivisor(b, a % b);
         }
+
+        public static void Initialize<T>(this IList<T> list, T value, int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(value);
+            }
+        }
     }
 
     public static class PointExtensions
