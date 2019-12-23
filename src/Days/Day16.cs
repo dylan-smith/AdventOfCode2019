@@ -7,6 +7,10 @@ namespace AdventOfCode.Days
     [Day(2019, 16)]
     public class Day16 : BaseDay
     {
+        private Dictionary<(int, int), int> _phaseValues = new Dictionary<(int, int), int>();
+        private int[] _signal;
+
+
         public override string PartOne(string input)
         {
             var signal = input.Trim().Select(x => int.Parse(x.ToString())).ToArray();
@@ -22,27 +26,79 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
+            var signalRepeat = 10000;
             var baseSignal = input.Trim().Select(x => int.Parse(x.ToString())).ToArray();
-            var signal = new int[baseSignal.Length * 10000];
+            _signal = new int[baseSignal.Length * signalRepeat];
 
-            for (var i = 0; i < 10000; i++)
+            for (var i = 0; i < signalRepeat; i++)
             {
-                baseSignal.CopyTo(signal, i * baseSignal.Length);
+                baseSignal.CopyTo(_signal, i * baseSignal.Length);
             }
+
+            var messageLocation = int.Parse(string.Concat(input.Take(7)));
+            //var result = string.Empty;
+
+            //for (var i = 0; i < 8; i++)
+            //{
+            //    _phaseValues.Add((99, messageLocation + i), GetElement(99, messageLocation + i));
+            //    result += _phaseValues[(99, messageLocation + i)].ToString();
+            //}
 
             for (var p = 0; p < 100; p++)
             {
                 Log($"{p}");
-                signal = ProcessPhase2(signal);
+                _signal = ProcessPhase2(_signal);
             }
 
-            //return string.Concat(signal.Select(x => x.ToString()));
-            //return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
+            ////return string.Concat(signal.Select(x => x.ToString()));
+            ////return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
 
-            var messageLocation = int.Parse(string.Concat(input.Take(7)));
-            //var messageLocation = 6023;
-            var result = string.Concat(signal.Skip(messageLocation).Take(8).Select(x => x.ToString()));
+            //var messageLocation = int.Parse(string.Concat(input.Take(7)));
+            ////var messageLocation = 6023;
+            var result = string.Concat(_signal.Skip(messageLocation).Take(8).Select(x => x.ToString()));
 
+            return result;
+        }
+
+        private int GetElement(int phase, int position)
+        {
+            if (_phaseValues.ContainsKey((phase, position)))
+            {
+                return _phaseValues[(phase, position)];
+            }
+
+            if (phase == 0)
+            {
+                return _signal[position];
+            }
+
+            var sum = 0;
+            var multiplier = -1;
+            var stop = 0;
+
+            while (stop < _signal.Length)
+            {
+                multiplier += 2;
+                stop = Math.Min((position * (multiplier + 1)) - 1, _signal.Length);
+
+                for (var i = (position * multiplier) - 1; i < stop; i++)
+                {
+                    sum += GetElement(phase - 1, i);
+                    //sum += signal[i];
+                }
+
+                multiplier += 2;
+                stop = Math.Min((position * (multiplier + 1)) - 1, _signal.Length);
+
+                for (var i = (position * multiplier) - 1; i < stop; i++)
+                {
+                    //sum -= signal[i];
+                    sum -= GetElement(phase - 1, i);
+                }
+            }
+
+            var result = Math.Abs(sum) % 10;
+            _phaseValues.Add((phase, position), result);
             return result;
         }
 
@@ -117,10 +173,10 @@ namespace AdventOfCode.Days
                 val5 -= 3;
             }
 
-            for (var i = 0; i <= pos; i++)
-            {
-                result[i] = TransformElement2(signal, i + 1);
-            }
+            //for (var i = 0; i <= pos; i++)
+            //{
+            //    result[i] = TransformElement2(signal, i + 1);
+            //}
 
             return result;
         }
