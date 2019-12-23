@@ -1109,9 +1109,9 @@ namespace AdventOfCode
             return grid.Clone(c => c);
         }
 
-        public static IEnumerable<char> GetNeighbors(this char[,] map, int x, int y)
+        public static IEnumerable<char> GetNeighbors(this char[,] map, int x, int y, bool includeDiagonals)
         {
-            var neighbors = new Point(x, y).GetNeighbors();
+            var neighbors = new Point(x, y).GetNeighbors(includeDiagonals);
 
             foreach (var n in neighbors)
             {
@@ -1120,6 +1120,11 @@ namespace AdventOfCode
                     yield return map[n.X, n.Y];
                 }
             }
+        }
+
+        public static IEnumerable<char> GetNeighbors(this char[,] map, int x, int y)
+        {
+            return map.GetNeighbors(x, y, true);
         }
 
         public static IEnumerable<(Point point, char c)> GetNeighborPoints(this char[,] map, int x, int y)
