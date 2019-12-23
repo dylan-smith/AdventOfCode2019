@@ -16,15 +16,16 @@ namespace AdventOfCode.Days
                 signal = ProcessPhase2(signal);
             }
 
+            //return string.Concat(signal.Select(x => x.ToString()));
             return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
         }
 
         public override string PartTwo(string input)
         {
             var baseSignal = input.Trim().Select(x => int.Parse(x.ToString())).ToArray();
-            var signal = new int[baseSignal.Length * 100];
+            var signal = new int[baseSignal.Length * 10000];
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 10000; i++)
             {
                 baseSignal.CopyTo(signal, i * baseSignal.Length);
             }
@@ -35,10 +36,14 @@ namespace AdventOfCode.Days
                 signal = ProcessPhase2(signal);
             }
 
-            return string.Concat(signal.Select(x => x.ToString()));
+            //return string.Concat(signal.Select(x => x.ToString()));
             //return $"{signal[0]}{signal[1]}{signal[2]}{signal[3]}{signal[4]}{signal[5]}{signal[6]}{signal[7]}";
 
-            //var messageLocation = int.Parse(string.Concat(input.Take(7)));
+            var messageLocation = int.Parse(string.Concat(input.Take(7)));
+            //var messageLocation = 6023;
+            var result = string.Concat(signal.Skip(messageLocation).Take(8).Select(x => x.ToString()));
+
+            return result;
         }
 
         private int[] ProcessPhase2(int[] signal)
