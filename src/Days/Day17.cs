@@ -184,14 +184,14 @@ namespace AdventOfCode.Days
 
         private List<List<char>> FindAllValidA(List<char> r, List<char> a)
         {
+            var result = new List<List<char>>() { a };
+
             if (a.Count == 10)
             {
-                return new List<List<char>>() { a };
+                return result;
             }
 
             var (pos, dir) = ApplyMoves(_startPos, _startDir, a);
-
-            var result = new List<List<char>>() { a };
 
             if (CanTurnRight(pos,dir, a))
             {
@@ -223,9 +223,11 @@ namespace AdventOfCode.Days
 
         private List<List<char>> FindAllValidB(List<char> r, List<char> a, List<char> b)
         {
+            var result = new List<List<char>>() { b };
+
             if (b.Count == 10)
             {
-                return new List<List<char>>() { b };
+                return result;
             }
 
             var pos = _startPos;
@@ -240,8 +242,6 @@ namespace AdventOfCode.Days
             }
 
             (pos, dir) = ApplyMoves(pos, dir, b);
-
-            var result = new List<List<char>>();
 
             if (CanTurnRight(pos, dir, b))
             {
@@ -273,9 +273,11 @@ namespace AdventOfCode.Days
 
         private List<List<char>> FindAllValidC(List<char> r, List<char> a, List<char> b, List<char> c)
         {
+            var result = new List<List<char>>() { c };
+
             if (c.Count == 10)
             {
-                return new List<List<char>>() { c };
+                return result;
             }
 
             var pos = _startPos;
@@ -290,8 +292,6 @@ namespace AdventOfCode.Days
             }
 
             (pos, dir) = ApplyMoves(pos, dir, c);
-
-            var result = new List<List<char>>();
 
             if (CanTurnRight(pos, dir, c))
             {
