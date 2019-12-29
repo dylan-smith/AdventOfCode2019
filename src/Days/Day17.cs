@@ -92,23 +92,30 @@ namespace AdventOfCode.Days
 
             foreach (var a in validA)
             {
-                Log($"A: {FuncToString(a)}");
-                var validB = FindAllValidB(r, a, new List<char>());
+                //Log($"A: {FuncToString(a)}");
 
-                foreach (var b in validB)
+                if (r.Contains('B'))
                 {
-                    //Log($"B: {FuncToString(b)}");
-                    var validC = FindAllValidC(r, a, b, new List<char>());
+                    var validB = FindAllValidB(r, a, new List<char>());
 
-                    if (validC.Any(c => IsComplete(r, a, b, c)))
+                    foreach (var b in validB)
                     {
-                        var result = new MovementLogic();
-                        result.Routine = r;
-                        result.A = a;
-                        result.B = b;
-                        result.C = validC.First(c => IsComplete(r, a, b, c));
+                        //Log($"B: {FuncToString(b)}");
+                        if (r.Contains('C'))
+                        {
+                            var validC = FindAllValidC(r, a, b, new List<char>());
 
-                        return result;
+                            if (validC.Any(c => IsComplete(r, a, b, c)))
+                            {
+                                var result = new MovementLogic();
+                                result.Routine = r;
+                                result.A = a;
+                                result.B = b;
+                                result.C = validC.First(c => IsComplete(r, a, b, c));
+
+                                return result;
+                            }
+                        }
                     }
                 }
             }
@@ -184,7 +191,7 @@ namespace AdventOfCode.Days
 
             var (pos, dir) = ApplyMoves(_startPos, _startDir, a);
 
-            var result = new List<List<char>>();
+            var result = new List<List<char>>() { a };
 
             if (CanTurnRight(pos,dir, a))
             {
@@ -377,29 +384,12 @@ namespace AdventOfCode.Days
             return true;
         }
 
-        private int GetStartACount(List<char> routine)
-        {
-            var count = 0;
-
-            for (var i = 0; i < routine.Count; i++)
-            {
-                if (routine[i] == 'A')
-                {
-                    count++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return count;
-        }
-
         private bool CanTurnRight(Point pos, Direction dir, List<char> moves)
         {
             var newDir = dir.TurnRight();
             var newPos = pos.Move(newDir);
+
+            if (!_map.IsValidPoint(newPos)) return false;
 
             if (_map[newPos.X, newPos.Y] != '#') return false;
 
@@ -407,7 +397,7 @@ namespace AdventOfCode.Days
 
             if (moves.Last() == 'L') return false;
 
-            if (moves.Last() == 'R' && moves[moves.Count - 2] == 'R') return false;
+            if (moves.Count >= 2 && moves.Last() == 'R' && moves[moves.Count - 2] == 'R') return false;
 
             return true;
         }
@@ -416,6 +406,8 @@ namespace AdventOfCode.Days
         {
             var newDir = dir.TurnLeft();
             var newPos = pos.Move(newDir);
+
+            if (!_map.IsValidPoint(newPos)) return false;
 
             if (_map[newPos.X, newPos.Y] != '#') return false;
 
@@ -430,8 +422,8 @@ namespace AdventOfCode.Days
 
         private (Point pos, Direction dir) ApplyMoves(Point startPos, Direction startDir, List<char> moves)
         {
-            var pos = _startPos;
-            var dir = _startDir;
+            var pos = startPos;
+            var dir = startDir;
 
             foreach (var m in moves)
             {
@@ -454,8 +446,8 @@ namespace AdventOfCode.Days
 
         private (Point pos, Direction dir, bool valid) ValidateMoves(Point startPos, Direction startDir, List<char> moves)
         {
-            var pos = _startPos;
-            var dir = _startDir;
+            var pos = startPos;
+            var dir = startDir;
             var valid = true;
 
             foreach (var m in moves)
