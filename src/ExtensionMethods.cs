@@ -1193,6 +1193,19 @@ namespace AdventOfCode
 
             throw new Exception("Should never happen");
         }
+
+        public static bool IsValidPoint(this char[,] grid, Point point)
+        {
+            if (point.X >= 0 && point.X < grid.GetLength(0))
+            {
+                if (point.Y >= 0 && point.Y < grid.GetLength(1))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public static class NumericExtensions
