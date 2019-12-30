@@ -88,7 +88,7 @@ namespace AdventOfCode.Days
         private MovementLogic? FindMovementLogic(List<char> r)
         {
             Log($"ROUTINE: {FuncToString(r)}");
-            var validA = FindAllValidA(r, new List<char>());
+            var validA = FindAllValidA(r, new List<char>(), _startPos, _startDir);
 
             foreach (var a in validA)
             {
@@ -96,14 +96,36 @@ namespace AdventOfCode.Days
 
                 if (r.Contains('B'))
                 {
-                    var validB = FindAllValidB(r, a, new List<char>());
+                    var pos = _startPos;
+                    var dir = _startDir;
+
+                    var x = 0;
+
+                    while (x < r.Count && r[x] == 'A')
+                    {
+                        (pos, dir) = ApplyMoves(pos, dir, a);
+                        x++;
+                    }
+
+                    var validB = FindAllValidB(r, a, new List<char>(), pos, dir);
 
                     foreach (var b in validB)
                     {
                         //Log($"B: {FuncToString(b)}");
                         if (r.Contains('C'))
                         {
-                            var validC = FindAllValidC(r, a, b, new List<char>());
+                            pos = _startPos;
+                            dir = _startDir;
+
+                            x = 0;
+
+                            while (x < r.Count && r[x] != 'C')
+                            {
+                                (pos, dir) = ApplyMoves(pos, dir, r[x] == 'A' ? a : b);
+                                x++;
+                            }
+
+                            var validC = FindAllValidC(r, a, b, new List<char>(), pos, dir);
 
                             if (validC.Any(c => IsComplete(r, a, b, c)))
                             {
@@ -182,7 +204,7 @@ namespace AdventOfCode.Days
             return !_map.GetPoints('#').Any(p => !points.Contains(p));
         }
 
-        private List<List<char>> FindAllValidA(List<char> r, List<char> a)
+        private List<List<char>> FindAllValidA(List<char> r, List<char> a, Point pos, Direction dir)
         {
             var result = new List<List<char>>() { a };
 
@@ -191,37 +213,37 @@ namespace AdventOfCode.Days
                 return result;
             }
 
-            var (pos, dir) = ApplyMoves(_startPos, _startDir, a);
+            //var (pos, dir) = ApplyMoves(_startPos, _startDir, a);
 
             if (CanTurnRight(pos,dir, a))
             {
                 var newA = a.Select(x => x).ToList();
                 newA.Add('R');
-                result.AddRange(FindAllValidA(r, newA));
+                result.AddRange(FindAllValidA(r, newA, pos, dir.TurnRight()));
             }
 
             if (CanTurnLeft(pos, dir, a))
             {
                 var newA = a.Select(x => x).ToList();
                 newA.Add('L');
-                result.AddRange(FindAllValidA(r, newA));
+                result.AddRange(FindAllValidA(r, newA, pos, dir.TurnLeft()));
             }
 
             if (a.Any() && (a.Last() == 'R' || a.Last() == 'L'))
             {
                 var forwardMoves = GetForwardMoves(pos, dir);
-                for (var i = 0; i < forwardMoves; i++)
+                for (var i = 1; i <= forwardMoves; i++)
                 {
                     var newA = a.Select(x => x).ToList();
-                    newA.Add((char)(i + 1));
-                    result.AddRange(FindAllValidA(r, newA));
+                    newA.Add((char)(i));
+                    result.AddRange(FindAllValidA(r, newA, pos.Move(dir, i), dir));
                 }
             }
 
             return result.Where(x => IsValidA(r, x)).ToList();
         }
 
-        private List<List<char>> FindAllValidB(List<char> r, List<char> a, List<char> b)
+        private List<List<char>> FindAllValidB(List<char> r, List<char> a, List<char> b, Point pos, Direction dir)
         {
             var result = new List<List<char>>() { b };
 
@@ -230,48 +252,48 @@ namespace AdventOfCode.Days
                 return result;
             }
 
-            var pos = _startPos;
-            var dir = _startDir;
+            //var pos = _startPos;
+            //var dir = _startDir;
 
-            var x = 0;
+            //var x = 0;
 
-            while (x < r.Count && r[x] == 'A')
-            {
-                (pos, dir) = ApplyMoves(pos, dir, a);
-                x++;
-            }
+            //while (x < r.Count && r[x] == 'A')
+            //{
+            //    (pos, dir) = ApplyMoves(pos, dir, a);
+            //    x++;
+            //}
 
-            (pos, dir) = ApplyMoves(pos, dir, b);
+            //(pos, dir) = ApplyMoves(pos, dir, b);
 
             if (CanTurnRight(pos, dir, b))
             {
                 var newB = b.Select(x => x).ToList();
                 newB.Add('R');
-                result.AddRange(FindAllValidB(r, a, newB));
+                result.AddRange(FindAllValidB(r, a, newB, pos, dir.TurnRight()));
             }
 
             if (CanTurnLeft(pos, dir, b))
             {
                 var newB = b.Select(x => x).ToList();
                 newB.Add('L');
-                result.AddRange(FindAllValidB(r, a, newB));
+                result.AddRange(FindAllValidB(r, a, newB, pos, dir.TurnLeft()));
             }
 
             if (b.Any() && (b.Last() == 'R' || b.Last() == 'L'))
             {
                 var forwardMoves = GetForwardMoves(pos, dir);
-                for (var i = 0; i < forwardMoves; i++)
+                for (var i = 1; i <= forwardMoves; i++)
                 {
                     var newB = b.Select(x => x).ToList();
-                    newB.Add((char)(i + 1));
-                    result.AddRange(FindAllValidB(r, a, newB));
+                    newB.Add((char)(i));
+                    result.AddRange(FindAllValidB(r, a, newB, pos.Move(dir, i), dir));
                 }
             }
 
             return result.Where(x => IsValidB(r, a, x)).ToList();
         }
 
-        private List<List<char>> FindAllValidC(List<char> r, List<char> a, List<char> b, List<char> c)
+        private List<List<char>> FindAllValidC(List<char> r, List<char> a, List<char> b, List<char> c, Point pos, Direction dir)
         {
             var result = new List<List<char>>() { c };
 
@@ -280,41 +302,41 @@ namespace AdventOfCode.Days
                 return result;
             }
 
-            var pos = _startPos;
-            var dir = _startDir;
+            //var pos = _startPos;
+            //var dir = _startDir;
 
-            var x = 0;
+            //var x = 0;
 
-            while (x < r.Count && r[x] != 'C')
-            {
-                (pos, dir) = ApplyMoves(pos, dir, r[x] == 'A' ? a : b);
-                x++;
-            }
+            //while (x < r.Count && r[x] != 'C')
+            //{
+            //    (pos, dir) = ApplyMoves(pos, dir, r[x] == 'A' ? a : b);
+            //    x++;
+            //}
 
-            (pos, dir) = ApplyMoves(pos, dir, c);
+            //(pos, dir) = ApplyMoves(pos, dir, c);
 
             if (CanTurnRight(pos, dir, c))
             {
                 var newC = c.Select(x => x).ToList();
                 newC.Add('R');
-                result.AddRange(FindAllValidC(r, a, b, newC));
+                result.AddRange(FindAllValidC(r, a, b, newC, pos, dir.TurnRight()));
             }
 
             if (CanTurnLeft(pos, dir, c))
             {
                 var newC = c.Select(x => x).ToList();
                 newC.Add('L');
-                result.AddRange(FindAllValidC(r, a, b, newC));
+                result.AddRange(FindAllValidC(r, a, b, newC, pos, dir.TurnLeft()));
             }
 
             if (c.Any() && (c.Last() == 'R' || c.Last() == 'L'))
             {
                 var forwardMoves = GetForwardMoves(pos, dir);
-                for (var i = 0; i < forwardMoves; i++)
+                for (var i = 1; i <= forwardMoves; i++)
                 {
                     var newC = c.Select(x => x).ToList();
-                    newC.Add((char)(i + 1));
-                    result.AddRange(FindAllValidC(r, a, b, newC));
+                    newC.Add((char)(i));
+                    result.AddRange(FindAllValidC(r, a, b, newC, pos.Move(dir, i), dir));
                 }
             }
 
@@ -324,7 +346,7 @@ namespace AdventOfCode.Days
         private int GetForwardMoves(Point pos, Direction dir)
         {
             var result = 0;
-            var newPos = pos;
+            var newPos = pos.Move(dir);
 
             while (_map.IsValidPoint(newPos) && _map[newPos.X, newPos.Y] == '#')
             {
