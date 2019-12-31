@@ -14,6 +14,7 @@ namespace AdventOfCode.Days
         private Direction _startDir;
         private List<Point> _intersections;
         private long _completeCheck = 0;
+        private int _best = int.MaxValue;
 
         public override string PartOne(string input)
         {
@@ -81,23 +82,42 @@ namespace AdventOfCode.Days
                 }
             }
 
-            FindMovementLogic("A,", "R,", string.Empty, string.Empty, _startPos, _startDir.TurnRight());
+            var unvisited = new HashSet<Point>(_map.GetPoints().Where(p => _map[p.X, p.Y] == '#'));
+            unvisited.Remove(_startPos);
+
+            FindMovementLogic("A,", "R,", string.Empty, string.Empty, _startPos, _startDir.TurnRight(), unvisited);
 
             return "foo";
         }
 
-        private void FindMovementLogic(string routine, string a, string b, string c, Point pos, Direction dir)
+        private void FindMovementLogic(string routine, string a, string b, string c, Point pos, Direction dir, HashSet<Point> unvisited)
         {
-            if (routine.ShaveRight(",").Length > 20 || a.ShaveRight(",").Length > 20 || b.ShaveRight(",").Length > 20 || c.ShaveRight(",").Length > 20)
+            if (routine.Length > 21 || a.Length > 21 || b.Length > 21 || c.Length > 21)
             {
                 return;
             }
 
-            // TODO: Check if this is complete and if so do something
-            if (IsComplete(routine, a, b, c))
+            _completeCheck++;
+
+            if (_completeCheck % 100000 == 0)
+            {
+                Log($"{_completeCheck} - {_best} - {routine} - {a} - {b} - {c}");
+            }
+
+            if (unvisited.Count == 0)
             {
                 Log("Complete!");
             }
+
+            if (unvisited.Count < _best)
+            {
+                _best = unvisited.Count;
+            }
+
+            //if (IsComplete(routine, a, b, c))
+            //{
+            //    Log("Complete!");
+            //}
 
             var aDone = routine.Length > 2;
             var bDone = routine.IndexOf('B') != routine.Length - 2;
@@ -106,58 +126,93 @@ namespace AdventOfCode.Days
 
             var curFunc = (!aDone) ? a : (!bDone) ? b : (!cDone) ? c : null;
 
-            if (!allDone && curFunc.ShaveRight(",").Length < 20)
+            if (!allDone && curFunc.Length < 21)
             {
-                var forwardMoves = GetForwardMoves(pos, dir).ToList();
-
-                foreach (var m in forwardMoves)
+                if (CanMoveForward(curFunc))
                 {
-                    var newFunc = curFunc + m.ToString() + ",";
-                    var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
-                    FindMovementLogic(routine, newA, newB, newC, pos.Move(dir, m), dir);
+                    var forwardMoves = GetForwardMoves(pos, dir).ToList();
+
+                    foreach (var m in forwardMoves)
+                    {
+                        var newFunc = curFunc + m.ToString() + ",";
+                        var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
+                        var (newPos, newUnvisited) = ApplyMove(pos, dir, m, unvisited);
+                        FindMovementLogic(routine, newA, newB, newC, newPos, dir, newUnvisited);
+                    }
                 }
 
                 if (CanTurnRight(pos, dir, curFunc))
                 {
                     var newFunc = curFunc + "R,";
                     var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
-                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnRight());
+                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnRight(), unvisited);
                 }
 
                 if (CanTurnLeft(pos, dir, curFunc))
                 {
                     var newFunc = curFunc + "L,";
                     var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
-                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnLeft());
+                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnLeft(), unvisited);
                 }
             }
 
             if (routine.ShaveRight(",").Length < 20)
             {
-                var (newPos, newDir, valid) = IsValid(pos, dir, a);
+                var (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, a, unvisited);
 
                 if (valid)
                 {
                     var newRoutine = routine + "A,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir);
+                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
                 }
 
-                (newPos, newDir, valid) = IsValid(pos, dir, b);
+                (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, b, unvisited);
 
                 if (valid)
                 {
                     var newRoutine = routine + "B,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir);
+                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
                 }
 
-                (newPos, newDir, valid) = IsValid(pos, dir, c);
+                (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, c, unvisited);
 
                 if (valid)
                 {
                     var newRoutine = routine + "C,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir);
+                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
                 }
             }
+        }
+
+        private bool CanMoveForward(string moves)
+        {
+            if (moves.Length > 0)
+            {
+                if (moves[moves.Length - 2] != 'R' && moves[moves.Length - 2] != 'L')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private (Point pos, HashSet<Point> unvisited) ApplyMove(Point pos, Direction dir, int m, HashSet<Point> unvisited)
+        {
+            Point newPos = pos;
+            var newUnvisited = new HashSet<Point>(unvisited);
+
+            for (var i = 0; i < m; i++)
+            {
+                newPos = newPos.Move(dir);
+                
+                if (newUnvisited.Contains(newPos))
+                {
+                    newUnvisited.Remove(newPos);
+                }
+            }
+
+            return (newPos, newUnvisited);
         }
 
         private (string a, string b, string c) GetNewFunc(bool aDone, bool bDone, bool cDone, string a, string b, string c, string newFunc)
@@ -228,8 +283,10 @@ namespace AdventOfCode.Days
             return !_map.GetPoints('#').Any(p => !points.Contains(p));
         }
 
-        private (Point pos, Direction dir, bool valid) IsValid(Point pos, Direction dir, string moves)
+        private (Point pos, Direction dir, HashSet<Point> unvisited, bool valid) IsValid(Point pos, Direction dir, string moves, HashSet<Point> unvisited)
         {
+            var newUnvisited = new HashSet<Point>(unvisited);
+
             foreach (var m in moves.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 switch (m)
@@ -241,19 +298,27 @@ namespace AdventOfCode.Days
                         dir = dir.TurnLeft();
                         break;
                     default:
-                        for (var i = 0; i < int.Parse(m); i++)
+                        var mLen = int.Parse(m);
+
+                        for (var i = 0; i < mLen; i++)
                         {
                             pos = pos.Move(dir);
+
                             if (!_map.IsValidPoint(pos) || _map[pos.X, pos.Y] != '#')
                             {
-                                return (pos, dir, false);
+                                return (pos, dir, newUnvisited, false);
+                            }
+
+                            if (newUnvisited.Contains(pos))
+                            {
+                                newUnvisited.Remove(pos);
                             }
                         }
                         break;
                 }
             }
 
-            return (pos, dir, true);
+            return (pos, dir, newUnvisited, true);
         }
 
         private bool CanTurnLeft(Point pos, Direction dir, string moves)
