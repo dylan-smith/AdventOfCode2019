@@ -99,7 +99,7 @@ namespace AdventOfCode.Days
 
             _completeCheck++;
 
-            if (_completeCheck % 100000 == 0)
+            if (_completeCheck % 10000000 == 0)
             {
                 Log($"{_completeCheck} - {_best} - {routine} - {a} - {b} - {c}");
             }
@@ -113,11 +113,6 @@ namespace AdventOfCode.Days
             {
                 _best = unvisited.Count;
             }
-
-            //if (IsComplete(routine, a, b, c))
-            //{
-            //    Log("Complete!");
-            //}
 
             var aDone = routine.Length > 2;
             var bDone = routine.IndexOf('B') != routine.Length - 2;
@@ -136,16 +131,10 @@ namespace AdventOfCode.Days
                     {
                         var newFunc = curFunc + m.ToString() + ",";
                         var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
-                        var (newPos, newUnvisited) = ApplyMove(pos, dir, m, unvisited);
-                        FindMovementLogic(routine, newA, newB, newC, newPos, dir, newUnvisited);
+                        var (newPos, removedUnvisited) = ApplyMove(pos, dir, m, unvisited);
+                        FindMovementLogic(routine, newA, newB, newC, newPos, dir, unvisited);
+                        unvisited.AddRange(removedUnvisited);
                     }
-                }
-
-                if (CanTurnRight(pos, dir, curFunc))
-                {
-                    var newFunc = curFunc + "R,";
-                    var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
-                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnRight(), unvisited);
                 }
 
                 if (CanTurnLeft(pos, dir, curFunc))
@@ -154,32 +143,48 @@ namespace AdventOfCode.Days
                     var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
                     FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnLeft(), unvisited);
                 }
+
+                if (CanTurnRight(pos, dir, curFunc))
+                {
+                    var newFunc = curFunc + "R,";
+                    var (newA, newB, newC) = GetNewFunc(aDone, bDone, cDone, a, b, c, newFunc);
+                    FindMovementLogic(routine, newA, newB, newC, pos, dir.TurnRight(), unvisited);
+                }
             }
 
             if (routine.ShaveRight(",").Length < 20)
             {
-                var (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, a, unvisited);
+                var (newPos, newDir, removedUnvisited, valid) = IsValid(pos, dir, a, unvisited);
 
                 if (valid)
                 {
                     var newRoutine = routine + "A,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
+                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, unvisited);
                 }
 
-                (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, b, unvisited);
+                unvisited.AddRange(removedUnvisited);
+
+                (newPos, newDir, removedUnvisited, valid) = IsValid(pos, dir, b, unvisited);
 
                 if (valid)
                 {
                     var newRoutine = routine + "B,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
+                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, unvisited);
                 }
 
-                (newPos, newDir, newUnvisited, valid) = IsValid(pos, dir, c, unvisited);
+                unvisited.AddRange(removedUnvisited);
 
-                if (valid)
+                if (aDone)
                 {
-                    var newRoutine = routine + "C,";
-                    FindMovementLogic(newRoutine, a, b, c, newPos, newDir, newUnvisited);
+                    (newPos, newDir, removedUnvisited, valid) = IsValid(pos, dir, c, unvisited);
+
+                    if (valid)
+                    {
+                        var newRoutine = routine + "C,";
+                        FindMovementLogic(newRoutine, a, b, c, newPos, newDir, unvisited);
+                    }
+
+                    unvisited.AddRange(removedUnvisited);
                 }
             }
         }
@@ -197,18 +202,19 @@ namespace AdventOfCode.Days
             return true;
         }
 
-        private (Point pos, HashSet<Point> unvisited) ApplyMove(Point pos, Direction dir, int m, HashSet<Point> unvisited)
+        private (Point pos, LinkedList<Point> unvisited) ApplyMove(Point pos, Direction dir, int m, HashSet<Point> unvisited)
         {
             Point newPos = pos;
-            var newUnvisited = new HashSet<Point>(unvisited);
+            var newUnvisited = new LinkedList<Point>();
 
             for (var i = 0; i < m; i++)
             {
                 newPos = newPos.Move(dir);
                 
-                if (newUnvisited.Contains(newPos))
+                if (unvisited.Contains(newPos))
                 {
-                    newUnvisited.Remove(newPos);
+                    unvisited.Remove(newPos);
+                    newUnvisited.AddLast(newPos);
                 }
             }
 
@@ -283,9 +289,9 @@ namespace AdventOfCode.Days
             return !_map.GetPoints('#').Any(p => !points.Contains(p));
         }
 
-        private (Point pos, Direction dir, HashSet<Point> unvisited, bool valid) IsValid(Point pos, Direction dir, string moves, HashSet<Point> unvisited)
+        private (Point pos, Direction dir, LinkedList<Point> unvisited, bool valid) IsValid(Point pos, Direction dir, string moves, HashSet<Point> unvisited)
         {
-            var newUnvisited = new HashSet<Point>(unvisited);
+            var newUnvisited = new LinkedList<Point>();
 
             foreach (var m in moves.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
@@ -309,9 +315,10 @@ namespace AdventOfCode.Days
                                 return (pos, dir, newUnvisited, false);
                             }
 
-                            if (newUnvisited.Contains(pos))
+                            if (unvisited.Contains(pos))
                             {
-                                newUnvisited.Remove(pos);
+                                unvisited.Remove(pos);
+                                newUnvisited.AddLast(pos);
                             }
                         }
                         break;
