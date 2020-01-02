@@ -9,30 +9,45 @@ namespace AdventOfCode.Days
     [Day(2019, 18)]
     public class Day18 : BaseDay
     {
+        private int BEST = int.MaxValue;
+
         public override string PartOne(string input)
         {
             var map = input.CreateCharGrid();
 
-            var root = new KeyTree
-            {
-                Key = '@',
-                Steps = 0,
-                Pos = GetStartPos(map),
-            };
+            FindPath(0, GetStartPos(map), map, GetKeys(map));
 
-            root.FindChildren(0, map, GetKeys(map));
-
-            return FindBestPath(root).ToString();
+            return BEST.ToString();
         }
 
-        private int FindBestPath(KeyTree tree)
+        public void FindPath(int steps, Point pos, char[,] map, Dictionary<char, Point> keys)
         {
-            if (tree.Children != null && tree.Children.Any())
+            if (!keys.Any())
             {
-                return tree.Steps + tree.Children.Min(c => FindBestPath(c));
+                if (steps < BEST)
+                {
+                    BEST = steps;
+                    Debug.WriteLine(BEST);
+                }
+                return;
             }
 
-            return tree.Steps;
+            var paths = map.FindShortestPaths(c => c == '.', pos).Where(p => keys.ContainsValue(p.Key)).ToList();
+            paths.Sort((x, y) => x.Value.CompareTo(y.Value));
+
+            foreach (var p in paths)
+            {
+                var key = keys.First(x => x.Value == p.Key).Key;
+
+                var doors = map.GetPoints().Where(z => map[z.X, z.Y] == (char)(key - 32)).ToList();
+                doors.ForEach(d => map[d.X, d.Y] = '.');
+                keys.Remove(key);
+
+                FindPath(steps + p.Value, p.Key, map, keys);
+
+                doors.ForEach(d => map[d.X, d.Y] = (char)(key - 32));
+                keys.Add(key, p.Key);
+            }
         }
 
         private Point GetStartPos(char[,] map)
@@ -62,55 +77,6 @@ namespace AdventOfCode.Days
         public override string PartTwo(string input)
         {
             throw new NotImplementedException();
-        }
-
-        private class KeyTree
-        {
-            public char Key { get; set; }
-            public int Steps { get; set; }
-            public Point Pos { get; set; }
-            public static int BEST = int.MaxValue;
-
-            public List<KeyTree> Children { get; set; }
-
-            public void FindChildren(int previousSteps, char[,] map, Dictionary<char, Point> keys)
-            {
-                if (!keys.Any())
-                {
-                    if (previousSteps + Steps < BEST)
-                    {
-                        BEST = previousSteps + Steps;
-                        Debug.WriteLine(BEST);
-                    }
-                    return;
-                }
-
-                var paths = map.FindShortestPaths(c => c == '.', Pos).Where(p => keys.ContainsValue(p.Key)).ToList();
-                paths.Sort((x, y) => x.Value.CompareTo(y.Value));
-
-                Children = new List<KeyTree>();
-
-                foreach (var p in paths)
-                {
-                    var child = new KeyTree
-                    {
-                        Key = keys.First(x => x.Value == p.Key).Key,
-                        Steps = p.Value,
-                        Pos = p.Key,
-                    };
-
-                    Children.Add(child);
-
-                    var doors = map.GetPoints().Where(z => map[z.X, z.Y] == (char)(child.Key - 32)).ToList();
-                    doors.ForEach(d => map[d.X, d.Y] = '.');
-                    keys.Remove(child.Key);
-
-                    child.FindChildren(previousSteps + Steps, map, keys);
-
-                    doors.ForEach(d => map[d.X, d.Y] = (char)(child.Key - 32));
-                    keys.Add(child.Key, child.Pos);
-                }
-            }
         }
     }
 }
