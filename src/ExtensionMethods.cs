@@ -1191,7 +1191,7 @@ namespace AdventOfCode
                 reachable = newReachable.Where(p => validMove(grid[p.X, p.Y]) && !seen.Contains(p)).Distinct().ToList();
             }
 
-            throw new Exception("Should never happen");
+            return -1;
         }
 
         public static bool IsValidPoint(this char[,] grid, Point point)
