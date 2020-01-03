@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
@@ -15,38 +14,93 @@ namespace AdventOfCode.Days
         {
             var map = input.CreateCharGrid();
 
-            FindPath(0, GetStartPos(map), map, GetKeys(map));
+            var startPos = GetStartPos(map);
+            var keyMap = GetKeyMap(map);
+
+            var paths = map.FindShortestPaths(c => c == '.', startPos).ToList();
+
+            ImageHelper.CreateBitmap(map.GetUpperBound(0) + 1, map.GetUpperBound(1) + 1, @"C:\AdventOfCode\Day18.bmp", (x,y) =>
+            {
+                if (keyMap.Any(k => k.Key.X == x && k.Key.Y == y))
+                {
+                    return Color.Red;
+                }
+
+                if (keyMap.Any(k => k.Value.X == x && k.Value.Y == y))
+                {
+                    return Color.Blue;
+                }
+
+                if (map[x, y] == '#')
+                {
+                    return Color.Black;
+                }
+
+                if (map[x,y] == '.')
+                {
+                    if (paths.Any(p => p.Key.X == x && p.Key.Y == y && p.Value >= 0))
+                    {
+                        return Color.Pink;
+                    }
+
+                    return Color.White;
+                }
+
+                return Color.Beige;
+            });
+
+            FindPath(0, startPos, map, GetKeyMap(map));
 
             return BEST.ToString();
         }
 
-        public void FindPath(int steps, Point pos, char[,] map, Dictionary<char, Point> keys)
+        private Dictionary<Point, Point> GetKeyMap(char[,] map)
+        {
+            var result = new Dictionary<Point, Point>();
+
+            var keys = map.GetPoints().Where(p => map[p.X, p.Y] >= 'a' && map[p.X, p.Y] <= 'z').ToList();
+
+            foreach (var k in keys)
+            {
+                var door = map.GetPoints().Single(p => map[p.X, p.Y] == (char)(map[k.X, k.Y] - 32));
+                result.Add(k, door);
+                map[k.X, k.Y] = '.';
+                map[door.X, door.Y] = '#';
+            }
+
+            return result;
+        }
+
+        public void FindPath(int steps, Point pos, char[,] map, Dictionary<Point, Point> keys)
         {
             if (!keys.Any())
             {
                 if (steps < BEST)
                 {
                     BEST = steps;
-                    Debug.WriteLine(BEST);
+                    Log(BEST.ToString());
                 }
                 return;
             }
 
-            var paths = map.FindShortestPaths(c => c == '.', pos).Where(p => keys.ContainsValue(p.Key)).ToList();
+            if (keys.Count == 23)
+            {
+                Log($"XXX - {steps}");
+            }
+
+            var paths = map.FindShortestPaths(c => c == '.', pos).Where(p => keys.ContainsKey(p.Key)).ToList();
             paths.Sort((x, y) => x.Value.CompareTo(y.Value));
 
             foreach (var p in paths)
             {
-                var key = keys.First(x => x.Value == p.Key).Key;
-
-                var doors = map.GetPoints().Where(z => map[z.X, z.Y] == (char)(key - 32)).ToList();
-                doors.ForEach(d => map[d.X, d.Y] = '.');
-                keys.Remove(key);
+                var door = keys[p.Key];
+                map[door.X, door.Y] = '.';
+                keys.Remove(p.Key);
 
                 FindPath(steps + p.Value, p.Key, map, keys);
 
-                doors.ForEach(d => map[d.X, d.Y] = (char)(key - 32));
-                keys.Add(key, p.Key);
+                map[door.X, door.Y] = '#';
+                keys.Add(p.Key, door);
             }
         }
 
@@ -55,21 +109,6 @@ namespace AdventOfCode.Days
             var result = map.GetPoints().Single(p => map[p.X, p.Y] == '@');
 
             map[result.X, result.Y] = '.';
-
-            return result;
-        }
-
-        private Dictionary<char, Point> GetKeys(char[,] map)
-        {
-            var result = new Dictionary<char, Point>();
-
-            var keys = map.GetPoints().Where(p => map[p.X, p.Y] >= 'a' && map[p.X, p.Y] <= 'z').ToList();
-
-            foreach (var k in keys)
-            {
-                result.Add(map[k.X, k.Y], k);
-                map[k.X, k.Y] = '.';
-            }
 
             return result;
         }
