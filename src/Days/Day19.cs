@@ -7,12 +7,7 @@ namespace AdventOfCode.Days
     [Day(2019, 19)]
     public class Day19 : BaseDay
     {
-        private long _x = 0;
-        private long _y = 0;
-        private long _maxX = 50;
-        private long _maxY = 50;
         private long _count = 0;
-        private bool _xOry = true;
         private IntCodeVM _vm;
 
         public override string PartOne(string input)
@@ -39,32 +34,6 @@ namespace AdventOfCode.Days
         private void Output(long tractor)
         {
             if (tractor > 0) _count++;
-        }
-
-        private long Input()
-        {
-            if (_xOry)
-            {
-                if (_x > _maxX)
-                {
-                    _y++;
-                    _x = 0;
-                }
-
-                if (_y > _maxY)
-                {
-                    _vm.Halt();
-                    return 0;
-                }
-
-                _xOry = !_xOry;
-                return _x;
-            }
-
-            _x++;
-            _xOry = !_xOry;
-
-            return _y;
         }
 
         public override string PartTwo(string input)
