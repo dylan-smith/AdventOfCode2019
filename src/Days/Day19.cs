@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace AdventOfCode.Days
@@ -9,6 +10,8 @@ namespace AdventOfCode.Days
     {
         private long _count = 0;
         private IntCodeVM _vm;
+        private Point _curPos;
+        private char[,] _beam;
 
         public override string PartOne(string input)
         {
@@ -17,10 +20,13 @@ namespace AdventOfCode.Days
                 OutputFunction = Output
             };
 
+            _beam = new char[50, 50];
+
             for (var y = 0; y < 50; y++)
             {
                 for (var x = 0; x < 50; x++)
                 {
+                    _curPos = new Point(x, y);
                     _vm.Reset();
                     _vm.AddInput(x);
                     _vm.AddInput(y);
@@ -28,17 +34,108 @@ namespace AdventOfCode.Days
                 }
             }
 
-            return _count.ToString();
+            Log(_beam.GetString());
+
+            return _beam.Count('#').ToString();
         }
 
         private void Output(long tractor)
         {
-            if (tractor > 0) _count++;
+            _beam[_curPos.X, _curPos.Y] = tractor > 0 ? '#' : '.';
         }
 
         public override string PartTwo(string input)
         {
-            throw new NotImplementedException();
+            _vm = new IntCodeVM(input, true)
+            {
+                OutputFunction = Output
+            };
+
+            _beam = new char[3000, 3000];
+
+            var left = 4;
+            var right = 5;
+
+            for (var y = 6; y <= _beam.GetUpperBound(1); y++)
+            {
+                _curPos = new Point(left, y);
+                _vm.Reset();
+                _vm.AddInput(left);
+                _vm.AddInput(y);
+                _vm.Run();
+
+                _curPos.X = right;
+                _vm.Reset();
+                _vm.AddInput(right);
+                _vm.AddInput(y);
+                _vm.Run();
+
+                if (_beam[left, y] == '.')
+                {
+                    left++;
+                }
+
+                for (var i = left; i < right; i++)
+                {
+                    _beam[i, y] = '#';
+                }
+
+                if (_beam[right, y] == '#')
+                {
+                    right++;
+                }
+            }
+            
+            var result = FindShip(_beam);
+
+            return (result.X * 10000 + result.Y).ToString();
+        }
+
+        private Point FindShip(char[,] beam)
+        {
+            for (var y = 0; y <= beam.GetUpperBound(1) - 100; y++)
+            {
+                var count = 0;
+                var left = int.MaxValue;
+
+                for (var x = 0; x <= beam.GetUpperBound(0); x++)
+                {
+                    if (beam[x, y] == '#')
+                    {
+                        if (x < left) left = x;
+                        count++;
+                    }
+                }
+
+                if (count >= 100)
+                {
+                    for (var x = left; x <= left + (count - 100); x++)
+                    {
+                        if (IsShip(x, y, beam))
+                        {
+                            return new Point(x, y);
+                        }
+                    }
+                }
+            }
+
+            throw new Exception("Ship not found");
+        }
+
+        private bool IsShip(int x, int y, char[,] beam)
+        {
+            for (var yy = y; yy < y + 100; yy++)
+            {
+                for (var xx = x; xx < x + 100; xx++)
+                {
+                    if (beam[xx, yy] != '#')
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         public class IntCodeVM
