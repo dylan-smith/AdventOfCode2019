@@ -18,52 +18,38 @@ namespace AdventOfCode.Days
             var startPos = GetStartPos(map);
             var keyMap = GetKeyMap(map);
 
-            var paths = GetPaths(map, keyMap, startPos);
+            _pathsByStart = GetPaths(map, keyMap, startPos);
 
-            var keyPoints = keyMap.Select(k => k.Key).Append(startPos).ToList();
-            _pathsByStart = new Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>>();
-
-            foreach (var key in keyPoints)
-            {
-                var keyPaths = paths.Where(p => p.Key.a == key).ToList();
-                var keyDict = new Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>();
-
-                keyPaths.ForEach(p => keyDict.Add(p.Key.b, p.Value));
-
-                _pathsByStart.Add(key, keyDict);
-            }
-
-            Log(map.GetString());
-
-            FindPath(0, startPos, new HashSet<Point>(keyMap.Select(k => k.Key).ToList()));
+            FindPath(0, startPos, new HashSet<Point>(keyMap.Select(k => k.Key)));
 
             return BEST.ToString();
         }
 
-        private Dictionary<(Point a, Point b), (int distance, HashSet<Point> doors, HashSet<Point> keys)> GetPaths(char[,] map, Dictionary<Point, Point> keyMap, Point startPos)
+        private Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>> GetPaths(char[,] map, Dictionary<Point, Point> keyMap, Point startPos)
         {
-            var newMap = map.Clone(c => c);
-
-            keyMap.ForEach(k => newMap[k.Value.X, k.Value.Y] = '.');
-
             var keyPoints = keyMap.Select(k => k.Key).Append(startPos).ToList();
 
-            var paths = GetPaths(newMap, keyPoints, keyMap);
-
-            return paths;
+            return GetPaths(map, keyMap, keyPoints);
         }
 
-        private Dictionary<(Point a, Point b), (int distance, HashSet<Point> doors, HashSet<Point> keys)> GetPaths(char[,] map, List<Point> keyPoints, Dictionary<Point, Point> keyMap)
+        private Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>> GetPaths(char[,] map, Dictionary<Point, Point> keyMap, List<Point> keyPoints)
         {
-            var result = new Dictionary<(Point a, Point b), (int distance, HashSet<Point> doors, HashSet<Point> keys)>();
+            var result = new Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>>();
+            Log(map.GetString());
 
             foreach (var combo in keyPoints.GetCombinations(2))
             {
                 var path = GetShortestPath(map, combo.First(), combo.Last(), new HashSet<Point>());
                 var doors = path.Where(p => keyMap.Any(k => k.Value == p)).Select(p => keyMap.Single(k => k.Value == p).Key).ToList();
                 var keys = path.Where(p => keyMap.Any(k => k.Key == p)).Where(p => p != combo.First() && p != combo.Last()).ToList();
+                var dict = new Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>();
 
-                result.Add((combo.First(), combo.Last()), (path.Count - 1, new HashSet<Point>(doors), new HashSet<Point>(keys)));
+                if (!result.ContainsKey(combo.First()))
+                {
+                    result.Add(combo.First(), new Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>());
+                }
+
+                result[combo.First()].Add(combo.Last(), (path.Count - 1, new HashSet<Point>(doors), new HashSet<Point>(keys)));
             }
 
             return result;
@@ -104,17 +90,17 @@ namespace AdventOfCode.Days
                 var door = map.GetPoints().Single(p => map[p.X, p.Y] == (char)(map[k.X, k.Y] - 32));
                 result.Add(k, door);
                 map[k.X, k.Y] = '.';
-                map[door.X, door.Y] = '#';
+                map[door.X, door.Y] = '.';
             }
 
             return result;
         }
 
-        public void FindPath(int steps, Point pos, HashSet<Point> keys)
+        public void FindPath(int steps, Point pos, HashSet<Point> keysLeft)
         {
             if (steps >= BEST) return;
 
-            if (!keys.Any())
+            if (!keysLeft.Any())
             {
                 if (steps < BEST)
                 {
@@ -124,26 +110,26 @@ namespace AdventOfCode.Days
                 return;
             }
 
-            if (keys.Count == 23)
+            if (keysLeft.Count == 23)
             {
-                Log($"{keys.Count} - {steps}");
+                Log($"{keysLeft.Count} - {steps}");
             }
 
-            var paths = keys.Select(k => (dest: k, details: _pathsByStart[pos][k]))
-                            .Where(p => !p.details.doors.Any(d => keys.Contains(d)))
-                            .OrderBy(p => p.details.distance)
-                            .ToList();
+            var paths = keysLeft.Select(k => (dest: k, details: _pathsByStart[pos][k]))
+                                .Where(p => !p.details.doors.Any(d => keysLeft.Contains(d)))
+                                .OrderBy(p => p.details.distance)
+                                .ToList();
 
             foreach (var (dest, details) in paths)
             {
-                keys.Remove(dest);
-                var removedKeys = keys.Where(k => details.keys.Contains(k)).ToList();
-                removedKeys.ForEach(r => keys.Remove(r));
+                keysLeft.Remove(dest);
+                var removedKeys = keysLeft.Where(k => details.keys.Contains(k)).ToList();
+                removedKeys.ForEach(r => keysLeft.Remove(r));
 
-                FindPath(steps + details.distance, dest, keys);
+                FindPath(steps + details.distance, dest, keysLeft);
 
-                keys.Add(dest);
-                keys.AddRange(removedKeys);
+                keysLeft.Add(dest);
+                keysLeft.AddRange(removedKeys);
             }
         }
 
