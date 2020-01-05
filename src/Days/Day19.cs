@@ -17,7 +17,7 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            _vm = new IntCodeVM(input)
+            _vm = new IntCodeVM(input, true)
             {
                 OutputFunction = Output
             };
@@ -76,23 +76,41 @@ namespace AdventOfCode.Days
         {
             private readonly List<long> _instructions;
             private List<long> _memory;
+            private Dictionary<long, long> _sparseMemory;
             private int _ip = 0;
             private List<long> _inputs = new List<long>();
             private long _relativeBase = 0;
             public Func<long> InputFunction { get; set; }
             public Action<long> OutputFunction { get; set; }
             private bool _halt = false;
+            private bool _isSparseMemory;
+            private int _memorySize;
 
-            public IntCodeVM(string program)
+            public IntCodeVM(string program, bool isSparseMemory = false, int memorySize = 1000000)
             {
                 _instructions = program.Longs().ToList();
+                _isSparseMemory = isSparseMemory;
+                _memorySize = memorySize;
                 Reset();
             }
 
             public void Reset()
             {
-                _memory = _instructions.Select(x => x).ToList();
-                _memory.AddMany(0, 2000000);
+                if (_isSparseMemory)
+                {
+                    _sparseMemory = new Dictionary<long, long>();
+
+                    for (var i = 0; i < _instructions.Count; i++)
+                    {
+                        _sparseMemory.Add((long)i, _instructions[i]);
+                    }
+                }
+                else
+                {
+                    _memory = _instructions.Select(x => x).ToList();
+                    _memory.AddMany(0, _memorySize);
+                }
+
                 _ip = 0;
             }
 
@@ -100,10 +118,31 @@ namespace AdventOfCode.Days
 
             public void AddInputs(IEnumerable<long> inputs) => _inputs.AddRange(inputs);
 
-            public void SetMemory(int address, long value) => _memory[address] = value;
+            public void SetMemory(int address, long value)
+            {
+                if (_isSparseMemory)
+                {
+                    _sparseMemory.SafeSet(address, value);
+                }
+                else
+                {
+                    _memory[address] = value;
+                }
+            }
 
             public long GetMemory(int address)
             {
+                if (_isSparseMemory)
+                {
+                    if (_sparseMemory.ContainsKey(address))
+                    {
+                        return _sparseMemory[address];
+                    }
+
+                    _sparseMemory.Add(address, 0);
+                    return 0;
+                }
+
                 if (_memory.Count < (address - 1))
                 {
                     var toAdd = (address - 1) - _memory.Count;
@@ -117,9 +156,10 @@ namespace AdventOfCode.Days
             {
                 AddInputs(inputs);
 
-                while (_memory[_ip] != 99 && !_halt)
+
+                while (GetMemory(_ip) != 99 && !_halt)
                 {
-                    var (op, p1, p2, p3) = ParseOpCode(_memory[_ip]);
+                    var (op, p1, p2, p3) = ParseOpCode(GetMemory(_ip));
 
                     _ = op switch
                     {
@@ -148,7 +188,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(2, p2);
                 var c = GetParameterAddress(3, p3);
 
-                _memory[c] = a + b;
+                SetMemory(c, a + b);
                 return _ip += 4;
             }
 
@@ -158,7 +198,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(2, p2);
                 var c = GetParameterAddress(3, p3);
 
-                _memory[c] = a * b;
+                SetMemory(c, a * b);
                 return _ip += 4;
             }
 
@@ -168,11 +208,11 @@ namespace AdventOfCode.Days
 
                 if (InputFunction != null)
                 {
-                    _memory[a] = InputFunction();
+                    SetMemory(a, InputFunction());
                 }
                 else
                 {
-                    _memory[a] = _inputs[0];
+                    SetMemory(a, _inputs[0]);
                     _inputs.RemoveAt(0);
                 }
                 return _ip += 2;
@@ -211,7 +251,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(2, p2);
                 var c = GetParameterAddress(3, p3);
 
-                _memory[c] = a < b ? 1 : 0;
+                SetMemory(c, a < b ? 1 : 0);
 
                 return _ip += 4;
             }
@@ -222,7 +262,7 @@ namespace AdventOfCode.Days
                 var b = GetParameter(2, p2);
                 var c = GetParameterAddress(3, p3);
 
-                _memory[c] = a == b ? 1 : 0;
+                SetMemory(c, a == b ? 1 : 0);
 
                 return _ip += 4;
             }
@@ -240,9 +280,9 @@ namespace AdventOfCode.Days
             {
                 return mode switch
                 {
-                    0 => _memory[(int)_memory[_ip + offset]],
-                    1 => _memory[_ip + offset],
-                    2 => _memory[(int)(_memory[_ip + offset] + _relativeBase)],
+                    0 => GetMemory((int)GetMemory(_ip + offset)),
+                    1 => GetMemory(_ip + offset),
+                    2 => GetMemory((int)GetMemory(_ip + offset) + (int)_relativeBase),
                     _ => throw new Exception("Invalid parameter mode")
                 };
             }
@@ -251,8 +291,8 @@ namespace AdventOfCode.Days
             {
                 return mode switch
                 {
-                    0 => (int)_memory[_ip + offset],
-                    2 => (int)(_memory[_ip + offset] + _relativeBase),
+                    0 => (int)GetMemory(_ip + offset),
+                    2 => (int)(GetMemory(_ip + offset) + _relativeBase),
                     _ => throw new Exception("Invalid parameter mode")
                 };
             }
