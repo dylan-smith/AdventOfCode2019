@@ -18,8 +18,8 @@ namespace AdventOfCode.Days
         {
             _map = input.CreateCharGrid();
 
-            var startPos = GetStartPos(_map);
-            GetKeyMap(_map);
+            var startPos = GetStartPos(_map)[0];
+            PreProcessMap(_map);
 
             var result = FindPath(startPos, "abcdefghijklmnopqrstuvwxyz");
 
@@ -40,8 +40,8 @@ namespace AdventOfCode.Days
             _map[41, 40] = '#';
             _map[41, 41] = '@';
 
-            var startPos = GetStartPos2(_map);
-            var keyMap = GetKeyMap(_map);
+            var startPos = GetStartPos(_map);
+            var keyMap = PreProcessMap(_map);
             _pathsByStart = GetPaths(_map, keyMap, startPos);
 
             startPos.ForEach(p => _keys.Add(p, '@'));
@@ -109,7 +109,7 @@ namespace AdventOfCode.Days
             return null;
         }
 
-        private Dictionary<Point, Point> GetKeyMap(char[,] map)
+        private Dictionary<Point, Point> PreProcessMap(char[,] map)
         {
             var result = new Dictionary<Point, Point>();
 
@@ -139,20 +139,20 @@ namespace AdventOfCode.Days
 
             while (q.Any())
             {
-                var item = q.Dequeue();
+                var state = q.Dequeue();
 
-                var seenKey = (item.pos, item.keysLeft);
+                var seenKey = (state.pos, state.keysLeft);
 
                 if (!seen.Contains(seenKey))
                 {
-                    if (!item.keysLeft.Any())
+                    if (!state.keysLeft.Any())
                     {
-                        return item.steps;
+                        return state.steps;
                     }
 
                     seen.Add(seenKey);
 
-                    q.Enqueue(ProcessState(item));
+                    q.Enqueue(ProcessState(state));
                 }
             }
 
@@ -176,12 +176,6 @@ namespace AdventOfCode.Days
 
                 if (!seen.Contains(seenKey))
                 {
-                    if (state.steps > steps)
-                    {
-                        steps = state.steps;
-                        Log($"{steps}");
-                    }
-
                     if (!state.keysLeft.Any())
                     {
                         return state.steps;
@@ -246,16 +240,7 @@ namespace AdventOfCode.Days
             }
         }
 
-        private Point GetStartPos(char[,] map)
-        {
-            var result = map.GetPoints().Single(p => map[p.X, p.Y] == '@');
-
-            map[result.X, result.Y] = '.';
-
-            return result;
-        }
-
-        private Point[] GetStartPos2(char[,] map)
+        private Point[] GetStartPos(char[,] map)
         {
             var result = map.GetPoints().Where(p => map[p.X, p.Y] == '@').ToList();
 
