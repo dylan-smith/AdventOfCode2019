@@ -12,9 +12,7 @@ namespace AdventOfCode.Days
         {
             var beam = MapBeam(50, input);
 
-            Log(beam.GetString());
-
-            return beam.Count('#').ToString();
+            return beam.Sum(b => b.start.HasValue ? b.end - b.start + 1 : 0).ToString();
         }
 
         public override string PartTwo(string input)
@@ -25,59 +23,68 @@ namespace AdventOfCode.Days
             return (result.X * 10000 + result.Y).ToString();
         }
 
-        private char CheckBeamCoords(int x, int y, IntCodeVM vm)
+        private bool CheckBeamCoords(int x, int y, IntCodeVM vm)
         {
             vm.Reset();
             vm.AddInput(x);
             vm.AddInput(y);
 
-            return vm.Run()[0] > 0 ? '#' : '.';
+            return vm.Run()[0] > 0;
         }
 
-        private char[,] MapBeam(int gridSize, string program)
+        private List<(int? start, int? end)> MapBeam(int rowCount, string program)
         {
             var vm = new IntCodeVM(program, true);
-            var beam = new char[gridSize, gridSize];
 
-            // these were hardcoded based on inspecting the puzzle input
+            var beam = new List<(int? left, int? right)>(rowCount);
+            beam.AddMany((null, null), rowCount);
+
+            // these are hardcoded based on inspecting the puzzle input
             var left = 4;
             var right = 5;
             var startRow = 6;
 
-            // Treat the first few rows special since some might be blank
+            // Treat the first few rows special - they have either 0 or 1
             for (var y = 0; y < startRow; y++)
             {
                 for (var x = 0; x <= right; x++)
                 {
-                    beam[x, y] = CheckBeamCoords(x, y, vm);
+                    if (CheckBeamCoords(x, y, vm))
+                    {
+                        beam[y] = (x, x);
+                    }
                 }
             }
-
-            for (var y = startRow; y < gridSize; y++)
+            
+            for (var y = startRow; y < rowCount; y++)
             {
-                beam[left, y] = CheckBeamCoords(left, y, vm);
-                beam[right, y] = CheckBeamCoords(right, y, vm);
+                if (!CheckBeamCoords(left, y, vm))
+                {
+                    left++;
+                }
 
-                if (beam[left, y] == '.') left++;
-                for (var i = left; i < right; i++) beam[i, y] = '#';
-                if (beam[right, y] == '#') right++;
+                if (CheckBeamCoords(right, y, vm))
+                {
+                    right++;
+                }
+
+                beam[y] = (left, right - 1);
             }
 
             return beam;
         }
 
-        private Point FindShip(char[,] beam)
+        private Point FindShip(List<(int? start, int? end)> beam)
         {
-            var rows = beam.GetRows().ToList();
+            var startRow = beam.SelectWithIndex()
+                               .First(r => r.item.end.HasValue && 
+                                           (r.item.end.Value - r.item.start.Value + 1) >= 100)
+                               .index;
 
-            var startRow = rows.SelectWithIndex().First(r => r.item.Count(c => c == '#') >= 100).index;
 
-            for (var y = startRow; y <= beam.GetUpperBound(1); y++)
+            for (var y = startRow; y < beam.Count; y++)
             {
-                var left = rows[y].IndexOf('#');
-                var right = rows[y].LastIndexOf('#');
-
-                for (var x = left; x <= right - 99; x++)
+                for (var x = beam[y].start.Value; x <= beam[y].end.Value - 99; x++)
                 {
                     if (IsShip(x, y, beam)) return new Point(x, y);
                 }
@@ -86,7 +93,7 @@ namespace AdventOfCode.Days
             throw new Exception("Ship not found");
         }
 
-        private bool IsShip(int x, int y, char[,] beam) => beam[x, y + 99] == '#';
+        private bool IsShip(int x, int y, List<(int? start, int? end)> beam) => beam[y + 99].start.Value <= x;
 
         public class IntCodeVM
         {
