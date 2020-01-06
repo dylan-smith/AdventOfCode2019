@@ -1206,6 +1206,26 @@ namespace AdventOfCode
 
             return false;
         }
+
+        public static string GetRow(this char[,] grid, int row)
+        {
+            var sb = new StringBuilder();
+
+            for (var x = 0; x <= grid.GetUpperBound(0); x++)
+            {
+                sb.Append(grid[x, row]);
+            }
+
+            return sb.ToString();
+        }
+
+        public static IEnumerable<string> GetRows(this char[,] grid)
+        {
+            for (var y = 0; y <= grid.GetUpperBound(1); y++)
+            {
+                yield return grid.GetRow(y);
+            }
+        }
     }
 
     public static class NumericExtensions

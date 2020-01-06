@@ -19,8 +19,7 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var beam = MapBeam(3000, input);
-
+            var beam = MapBeam(2000, input);
             var result = FindShip(beam);
 
             return (result.X * 10000 + result.Y).ToString();
@@ -31,6 +30,7 @@ namespace AdventOfCode.Days
             vm.Reset();
             vm.AddInput(x);
             vm.AddInput(y);
+
             return vm.Run()[0] > 0 ? '#' : '.';
         }
 
@@ -67,29 +67,18 @@ namespace AdventOfCode.Days
 
         private Point FindShip(char[,] beam)
         {
-            for (var y = 0; y <= beam.GetUpperBound(1) - 100; y++)
+            var rows = beam.GetRows().ToList();
+
+            var startRow = rows.SelectWithIndex().First(r => r.item.Count(c => c == '#') >= 100).index;
+
+            for (var y = startRow; y <= beam.GetUpperBound(1); y++)
             {
-                var count = 0;
-                var left = int.MaxValue;
+                var left = rows[y].IndexOf('#');
+                var right = rows[y].LastIndexOf('#');
 
-                for (var x = 0; x <= beam.GetUpperBound(0); x++)
+                for (var x = left; x <= right - 99; x++)
                 {
-                    if (beam[x, y] == '#')
-                    {
-                        if (x < left) left = x;
-                        count++;
-                    }
-                }
-
-                if (count >= 100)
-                {
-                    for (var x = left; x <= left + (count - 100); x++)
-                    {
-                        if (IsShip(x, y, beam))
-                        {
-                            return new Point(x, y);
-                        }
-                    }
+                    if (IsShip(x, y, beam)) return new Point(x, y);
                 }
             }
 
@@ -98,18 +87,7 @@ namespace AdventOfCode.Days
 
         private bool IsShip(int x, int y, char[,] beam)
         {
-            for (var yy = y; yy < y + 100; yy++)
-            {
-                for (var xx = x; xx < x + 100; xx++)
-                {
-                    if (beam[xx, yy] != '#')
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return beam[x, y + 99] == '#';
         }
 
         public class IntCodeVM
