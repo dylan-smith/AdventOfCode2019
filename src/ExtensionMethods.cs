@@ -867,6 +867,38 @@ namespace AdventOfCode
                 list.Add(value);
             }
         }
+
+        public static void RotateLeft<T>(this LinkedList<T> list)
+        {
+            var temp = list.First.Value;
+            list.RemoveFirst();
+            list.AddLast(temp);
+        }
+
+        public static void RotateRight<T>(this LinkedList<T> list)
+        {
+            var temp = list.Last.Value;
+            list.RemoveLast();
+            list.AddFirst(temp);
+        }
+
+        public static void RotateLeft<T>(this LinkedList<T> list, int n)
+        {
+            if (n >= 0)
+            {
+                for (var i = 0; i < n; i++)
+                {
+                    list.RotateLeft();
+                }
+            }
+            else
+            {
+                for (var i = 0; i < Math.Abs(n); i++)
+                {
+                    list.RotateRight();
+                }
+            }
+        }
     }
 
     public static class PointExtensions
