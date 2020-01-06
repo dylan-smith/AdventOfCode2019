@@ -166,8 +166,6 @@ namespace AdventOfCode.Days
 
             q.Enqueue((0, startPos, keys), 0);
 
-            var steps = 0;
-
             while (q.Any())
             {
                 var state = q.Dequeue();
