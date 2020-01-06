@@ -1129,7 +1129,12 @@ namespace AdventOfCode
 
         public static IEnumerable<(Point point, char c)> GetNeighborPoints(this char[,] map, int x, int y)
         {
-            var neighbors = new Point(x, y).GetNeighbors(false);
+            return map.GetNeighborPoints(new Point(x, y));
+        }
+
+        public static IEnumerable<(Point point, char c)> GetNeighborPoints(this char[,] map, Point p)
+        {
+            var neighbors = p.GetNeighbors(false);
 
             foreach (var n in neighbors)
             {

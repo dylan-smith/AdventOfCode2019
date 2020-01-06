@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Priority_Queue;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -8,28 +9,46 @@ namespace AdventOfCode.Days
     [Day(2019, 18)]
     public class Day18 : BaseDay
     {
-        private int BEST = int.MaxValue;
         private Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>> _pathsByStart;
+        private readonly Dictionary<Point, char> _keys = new Dictionary<Point, char>();
+        private readonly Dictionary<Point, char> _doors = new Dictionary<Point, char>();
+        private char[,] _map;
 
         public override string PartOne(string input)
         {
-            var map = input.CreateCharGrid();
+            _map = input.CreateCharGrid();
 
-            var startPos = GetStartPos(map);
-            var keyMap = GetKeyMap(map);
+            var startPos = GetStartPos(_map);
+            GetKeyMap(_map);
 
-            _pathsByStart = GetPaths(map, keyMap, startPos);
+            var result = FindPath(startPos, "abcdefghijklmnopqrstuvwxyz");
 
-            FindPath(0, startPos, new HashSet<Point>(keyMap.Select(k => k.Key)));
-
-            return BEST.ToString();
+            return result.ToString();
         }
 
-        private Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>> GetPaths(char[,] map, Dictionary<Point, Point> keyMap, Point startPos)
+        public override string PartTwo(string input)
         {
-            var keyPoints = keyMap.Select(k => k.Key).Append(startPos).ToList();
+            _map = input.CreateCharGrid();
 
-            return GetPaths(map, keyMap, keyPoints);
+            _map[39, 39] = '@';
+            _map[39, 40] = '#';
+            _map[39, 41] = '@';
+            _map[40, 39] = '#';
+            _map[40, 40] = '#';
+            _map[40, 41] = '#';
+            _map[41, 39] = '@';
+            _map[41, 40] = '#';
+            _map[41, 41] = '@';
+
+            var startPos = GetStartPos2(_map);
+            var keyMap = GetKeyMap(_map);
+            _pathsByStart = GetPaths(_map, keyMap, startPos);
+
+            startPos.ForEach(p => _keys.Add(p, '@'));
+
+            var result = FindPath(startPos, "abcdefghijklmnopqrstuvwxyz");
+
+            return result.ToString();
         }
 
         private Dictionary<Point, Dictionary<Point, (int distance, HashSet<Point> doors, HashSet<Point> keys)>> GetPaths(char[,] map, Dictionary<Point, Point> keyMap, Point[] startPos)
@@ -100,6 +119,10 @@ namespace AdventOfCode.Days
             {
                 var door = map.GetPoints().Single(p => map[p.X, p.Y] == (char)(map[k.X, k.Y] - 32));
                 result.Add(k, door);
+
+                _keys.Add(k, map[k.X, k.Y]);
+                _doors.Add(door, map[k.X, k.Y]);
+
                 map[k.X, k.Y] = '.';
                 map[door.X, door.Y] = '.';
             }
@@ -107,82 +130,118 @@ namespace AdventOfCode.Days
             return result;
         }
 
-        public void FindPath(int steps, Point pos, HashSet<Point> keysLeft)
+        public int FindPath(Point startPos, string keys)
         {
-            if (steps >= BEST) return;
+            var q = new Queue<(int steps, Point pos, string keysLeft)>();
+            var seen = new HashSet<(Point pos, string keysLeft)>();
 
-            if (!keysLeft.Any())
+            q.Enqueue((0, startPos, keys));
+
+            while (q.Any())
             {
-                if (steps < BEST)
+                var item = q.Dequeue();
+
+                var seenKey = (item.pos, item.keysLeft);
+
+                if (!seen.Contains(seenKey))
                 {
-                    BEST = steps;
-                    Log(BEST.ToString());
+                    if (!item.keysLeft.Any())
+                    {
+                        return item.steps;
+                    }
+
+                    seen.Add(seenKey);
+
+                    q.Enqueue(ProcessState(item));
                 }
-                return;
             }
 
-            if (keysLeft.Count == 23)
+            throw new Exception("No path found");
+        }
+
+        public int FindPath(Point[] startPos, string keys)
+        {
+            var q = new SimplePriorityQueue<(int steps, Point[] pos, string keysLeft), int>();
+            var seen = new HashSet<(Point a, Point b, Point c, Point d, string keysLeft)>();
+
+            q.Enqueue((0, startPos, keys), 0);
+
+            var steps = 0;
+
+            while (q.Any())
             {
-                Log($"{keysLeft.Count} - {steps}");
+                var state = q.Dequeue();
+
+                var seenKey = (state.pos[0], state.pos[1], state.pos[2], state.pos[3], state.keysLeft);
+
+                if (!seen.Contains(seenKey))
+                {
+                    if (state.steps > steps)
+                    {
+                        steps = state.steps;
+                        Log($"{steps}");
+                    }
+
+                    if (!state.keysLeft.Any())
+                    {
+                        return state.steps;
+                    }
+
+                    seen.Add(seenKey);
+
+                    var newStates = ProcessState(state);
+                    newStates.ForEach(s => q.Enqueue(s, s.steps));
+                }
             }
 
-            var paths = keysLeft.Select(k => (dest: k, details: _pathsByStart[pos][k]))
-                                .Where(p => !p.details.doors.Any(d => keysLeft.Contains(d)))
-                                .OrderBy(p => p.details.distance)
-                                .ToList();
+            throw new Exception("No path found");
+        }
 
-            foreach (var (dest, details) in paths)
+        private IEnumerable<(int steps, Point pos, string keysLeft)> ProcessState((int steps, Point pos, string keysLeft) state)
+        {
+            var (steps, pos, keysLeft) = state;
+
+            var paths = pos.GetNeighbors(false).Where(p => _map[p.X, p.Y] == '.').ToList();
+
+            foreach (var path in paths)
             {
-                keysLeft.Remove(dest);
-                var removedKeys = keysLeft.Where(k => details.keys.Contains(k)).ToList();
-                removedKeys.ForEach(r => keysLeft.Remove(r));
+                if (_doors.ContainsKey(path) && keysLeft.Contains(_doors[path]))
+                {
+                    continue;
+                }
 
-                FindPath(steps + details.distance, dest, keysLeft);
+                var newKeysLeft = keysLeft;
 
-                keysLeft.Add(dest);
-                keysLeft.AddRange(removedKeys);
+                if (_keys.ContainsKey(path) && keysLeft.Contains(_keys[path]))
+                {
+                    newKeysLeft = keysLeft.Remove(keysLeft.IndexOf(_keys[path]), 1);
+                }
+
+                yield return (steps + 1, path, newKeysLeft);
             }
         }
 
-        public void FindPath(int steps, Point[] pos, HashSet<Point> keysLeft)
+        private IEnumerable<(int steps, Point[] pos, string keysLeft)> ProcessState((int steps, Point[] pos, string keysLeft) state)
         {
-            if (steps >= BEST) return;
+            var (steps, pos, keysLeft) = state;
 
-            if (!keysLeft.Any())
+            for (var i = 0; i < 4; i++)
             {
-                if (steps < BEST)
-                {
-                    BEST = steps;
-                    Log(BEST.ToString());
-                }
-                return;
-            }
-
-            if (keysLeft.Count == 23)
-            {
-                Log($"{keysLeft.Count} - {steps}");
-            }
-
-            for (var i = 0; i <= 3; i++)
-            {
-                var paths = _pathsByStart[pos[i]].Where(p => keysLeft.Contains(p.Key))
-                                    .Where(p => !p.Value.doors.Any(d => keysLeft.Contains(d)))
-                                    .OrderBy(p => p.Value.distance)
+                var paths = _pathsByStart[pos[i]].Where(p => keysLeft.Contains(_keys[p.Key]))
+                                    .Where(p => !p.Value.doors.Any(d => keysLeft.Contains(_keys[d])))
                                     .ToList();
 
-                foreach (var (dest, details) in paths)
+                foreach (var path in paths)
                 {
-                    keysLeft.Remove(dest);
-                    var removedKeys = keysLeft.Where(k => details.keys.Contains(k)).ToList();
-                    removedKeys.ForEach(r => keysLeft.Remove(r));
-                    var oldPos = pos[i];
-                    pos[i] = dest;
+                    var newKeysLeft = keysLeft.Remove(keysLeft.IndexOf(_keys[path.Key]), 1);
+                    path.Value.keys.ForEach(k => 
+                    { 
+                        if (newKeysLeft.Contains(_keys[k])) newKeysLeft = newKeysLeft.Remove(newKeysLeft.IndexOf(_keys[k]), 1); 
+                    });
 
-                    FindPath(steps + details.distance, pos, keysLeft);
-
-                    keysLeft.Add(dest);
-                    keysLeft.AddRange(removedKeys);
-                    pos[i] = oldPos;
+                    var newPos = new Point[4] { pos[0], pos[1], pos[2], pos[3] };
+                    newPos[i] = path.Key;
+                    yield return (steps + path.Value.distance, newPos, newKeysLeft);
                 }
             }
         }
@@ -203,30 +262,6 @@ namespace AdventOfCode.Days
             result.ForEach(r => map[r.X, r.Y] = '.');
 
             return result.ToArray();
-        }
-
-        public override string PartTwo(string input)
-        {
-            var map = input.CreateCharGrid();
-
-            map[39, 39] = '@';
-            map[39, 40] = '#';
-            map[39, 41] = '@';
-            map[40, 39] = '#';
-            map[40, 40] = '#';
-            map[40, 41] = '#';
-            map[41, 39] = '@';
-            map[41, 40] = '#';
-            map[41, 41] = '@';
-
-            var startPos = GetStartPos2(map);
-            var keyMap = GetKeyMap(map);
-
-            _pathsByStart = GetPaths(map, keyMap, startPos);
-
-            FindPath(0, startPos, new HashSet<Point>(keyMap.Select(k => k.Key)));
-
-            return BEST.ToString();
         }
     }
 }
