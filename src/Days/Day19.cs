@@ -8,87 +8,61 @@ namespace AdventOfCode.Days
     [Day(2019, 19)]
     public class Day19 : BaseDay
     {
-        private long _count = 0;
-        private IntCodeVM _vm;
-        private Point _curPos;
-        private char[,] _beam;
-
         public override string PartOne(string input)
         {
-            _vm = new IntCodeVM(input, true)
-            {
-                OutputFunction = Output
-            };
+            var beam = MapBeam(50, input);
 
-            _beam = new char[50, 50];
+            Log(beam.GetString());
 
-            for (var y = 0; y < 50; y++)
-            {
-                for (var x = 0; x < 50; x++)
-                {
-                    _curPos = new Point(x, y);
-                    _vm.Reset();
-                    _vm.AddInput(x);
-                    _vm.AddInput(y);
-                    _vm.Run();
-                }
-            }
-
-            Log(_beam.GetString());
-
-            return _beam.Count('#').ToString();
-        }
-
-        private void Output(long tractor)
-        {
-            _beam[_curPos.X, _curPos.Y] = tractor > 0 ? '#' : '.';
+            return beam.Count('#').ToString();
         }
 
         public override string PartTwo(string input)
         {
-            _vm = new IntCodeVM(input, true)
-            {
-                OutputFunction = Output
-            };
+            var beam = MapBeam(3000, input);
 
-            _beam = new char[3000, 3000];
+            var result = FindShip(beam);
+
+            return (result.X * 10000 + result.Y).ToString();
+        }
+
+        private char CheckBeamCoords(int x, int y, IntCodeVM vm)
+        {
+            vm.Reset();
+            vm.AddInput(x);
+            vm.AddInput(y);
+            return vm.Run()[0] > 0 ? '#' : '.';
+        }
+
+        private char[,] MapBeam(int gridSize, string program)
+        {
+            var vm = new IntCodeVM(program, true);
+            var beam = new char[gridSize, gridSize];
 
             var left = 4;
             var right = 5;
+            var startRow = 6;
 
-            for (var y = 6; y <= _beam.GetUpperBound(1); y++)
+            // Treat the first few rows special since some might be blank
+            for (var y = 0; y < startRow; y++)
             {
-                _curPos = new Point(left, y);
-                _vm.Reset();
-                _vm.AddInput(left);
-                _vm.AddInput(y);
-                _vm.Run();
-
-                _curPos.X = right;
-                _vm.Reset();
-                _vm.AddInput(right);
-                _vm.AddInput(y);
-                _vm.Run();
-
-                if (_beam[left, y] == '.')
+                for (var x = 0; x <= right; x++)
                 {
-                    left++;
-                }
-
-                for (var i = left; i < right; i++)
-                {
-                    _beam[i, y] = '#';
-                }
-
-                if (_beam[right, y] == '#')
-                {
-                    right++;
+                    beam[x, y] = CheckBeamCoords(x, y, vm);
                 }
             }
-            
-            var result = FindShip(_beam);
 
-            return (result.X * 10000 + result.Y).ToString();
+            for (var y = startRow; y < gridSize; y++)
+            {
+                beam[left, y] = CheckBeamCoords(left, y, vm);
+                beam[right, y] = CheckBeamCoords(right, y, vm);
+
+                if (beam[left, y] == '.') left++;
+                for (var i = left; i < right; i++) beam[i, y] = '#';
+                if (beam[right, y] == '#') right++;
+            }
+
+            return beam;
         }
 
         private Point FindShip(char[,] beam)
@@ -145,6 +119,7 @@ namespace AdventOfCode.Days
             private Dictionary<long, long> _sparseMemory;
             private int _ip = 0;
             private List<long> _inputs = new List<long>();
+            private List<long> _outputs = new List<long>();
             private long _relativeBase = 0;
             public Func<long> InputFunction { get; set; }
             public Action<long> OutputFunction { get; set; }
@@ -176,6 +151,9 @@ namespace AdventOfCode.Days
                     _memory = _instructions.Select(x => x).ToList();
                     _memory.AddMany(0, _memorySize);
                 }
+
+                _inputs = new List<long>();
+                _outputs = new List<long>();
 
                 _ip = 0;
             }
@@ -218,10 +196,9 @@ namespace AdventOfCode.Days
                 return _memory[address];
             }
 
-            public void Run(params long[] inputs)
+            public List<long> Run(params long[] inputs)
             {
                 AddInputs(inputs);
-
 
                 while (GetMemory(_ip) != 99 && !_halt)
                 {
@@ -241,6 +218,8 @@ namespace AdventOfCode.Days
                         _ => throw new Exception($"Invalid op code [{op}]")
                     };
                 }
+
+                return _outputs;
             }
 
             public void Halt()
@@ -288,7 +267,14 @@ namespace AdventOfCode.Days
             {
                 var a = GetParameter(1, p1);
 
-                OutputFunction(a);
+                if (OutputFunction != null)
+                {
+                    OutputFunction(a);
+                }
+                else
+                {
+                    _outputs.Add(a);
+                }
 
                 return _ip += 2;
             }
