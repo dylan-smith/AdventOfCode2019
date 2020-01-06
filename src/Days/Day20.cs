@@ -14,13 +14,27 @@ namespace AdventOfCode.Days
             var map = input.CreateCharGrid();
 
             var portalPoints = GetPortalPoints(map).ToList();
-            var portals = GetPortals(portalPoints);
             var paths = GetPaths(map, portalPoints);
 
             var startPos = portalPoints.Single(p => p.name == "AA").pos;
             var endPos = portalPoints.Single(p => p.name == "ZZ").pos;
 
             var result = FindBestPath(paths, startPos, endPos);
+
+            return result.ToString();
+        }
+
+        public override string PartTwo(string input)
+        {
+            var map = input.CreateCharGrid();
+
+            var portalPoints = GetPortalPoints(map).ToList();
+            var paths = GetPaths(map, portalPoints);
+
+            var startPos = portalPoints.Single(p => p.name == "AA").pos;
+            var endPos = portalPoints.Single(p => p.name == "ZZ").pos;
+
+            var result = FindBestRecursivePath(paths, startPos, endPos);
 
             return result.ToString();
         }
@@ -56,7 +70,7 @@ namespace AdventOfCode.Days
             throw new Exception("Path not found");
         }
 
-        private int FindBestRecursivePath(Dictionary<Point, (Point dest, int layer)> portals, Dictionary<Point, Dictionary<Point, (int steps, int layer)>> paths, Point start, Point end)
+        private int FindBestRecursivePath(Dictionary<Point, Dictionary<Point, (int steps, int layer)>> paths, Point start, Point end)
         {
             var q = new SimplePriorityQueue<(Point pos, int steps, int layer), int>();
 
@@ -101,33 +115,18 @@ namespace AdventOfCode.Days
                                .Where(x => points.Contains(x.Key) && x.Key != p)
                                .ToList();
 
-                var dict = new Dictionary<Point, (int steps, int layer)>();
-                paths.ForEach(x => dict.Add(x.Key, (x.Value, 0)));
+                var destinations = new Dictionary<Point, (int steps, int layer)>();
+                paths.ForEach(x => destinations.Add(x.Key, (x.Value, 0)));
                 
-                var portal = portalPoints.Single(x => x.pos == p);
-                var otherPortal = portalPoints.FirstOrDefault(x => x.name == portal.name && x.pos != p);
+                var (name, pos, layer) = portalPoints.Single(x => x.pos == p);
+                var otherPortal = portalPoints.FirstOrDefault(x => x.name == name && x.pos != p);
 
                 if (otherPortal != default)
                 {
-                    dict.Add(otherPortal.pos, (1, portal.layer));
+                    destinations.Add(otherPortal.pos, (1, layer));
                 }
 
-                result.Add(p, dict);
-            }
-
-            return result;
-        }
-
-        private Dictionary<Point, (Point dest, int layer)> GetPortals(List<(string name, Point pos, int layer)> points)
-        {
-            var result = new Dictionary<Point, (Point dest, int layer)>();
-
-            var groups = points.GroupBy(p => p.name).Where(g => g.Key != "AA" && g.Key != "ZZ").ToList();
-
-            foreach (var g in groups)
-            {
-                result.Add(g.First().pos, (g.Last().pos, g.First().layer));
-                result.Add(g.Last().pos, (g.First().pos, g.Last().layer));
+                result.Add(p, destinations);
             }
 
             return result;
@@ -192,22 +191,6 @@ namespace AdventOfCode.Days
                     yield return ($"{map[94, y]}{map[95, y]}", new Point(96, y), 1);
                 }
             }
-        }
-
-        public override string PartTwo(string input)
-        {
-            var map = input.CreateCharGrid();
-
-            var portalPoints = GetPortalPoints(map).ToList();
-            var portals = GetPortals(portalPoints);
-            var paths = GetPaths(map, portalPoints);
-
-            var startPos = portalPoints.Single(p => p.name == "AA").pos;
-            var endPos = portalPoints.Single(p => p.name == "ZZ").pos;
-
-            var result = FindBestRecursivePath(portals, paths, startPos, endPos);
-
-            return result.ToString();
         }
     }
 }
