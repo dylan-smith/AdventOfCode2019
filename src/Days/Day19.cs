@@ -39,6 +39,7 @@ namespace AdventOfCode.Days
             var vm = new IntCodeVM(program, true);
             var beam = new char[gridSize, gridSize];
 
+            // these were hardcoded based on inspecting the puzzle input
             var left = 4;
             var right = 5;
             var startRow = 6;
@@ -85,10 +86,7 @@ namespace AdventOfCode.Days
             throw new Exception("Ship not found");
         }
 
-        private bool IsShip(int x, int y, char[,] beam)
-        {
-            return beam[x, y + 99] == '#';
-        }
+        private bool IsShip(int x, int y, char[,] beam) => beam[x, y + 99] == '#';
 
         public class IntCodeVM
         {
