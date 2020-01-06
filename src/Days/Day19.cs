@@ -12,7 +12,7 @@ namespace AdventOfCode.Days
         {
             var beam = MapBeam(50, input);
 
-            return beam.Sum(b => b.start.HasValue ? b.end - b.start + 1 : 0).ToString();
+            return beam.Sum(b => b.HasValue ? b.Value.end - b.Value.start + 1 : 0).ToString();
         }
 
         public override string PartTwo(string input)
@@ -32,12 +32,12 @@ namespace AdventOfCode.Days
             return vm.Run()[0] > 0;
         }
 
-        private List<(int? start, int? end)> MapBeam(int rowCount, string program)
+        private List<(int start, int end)?> MapBeam(int rowCount, string program)
         {
             var vm = new IntCodeVM(program, true);
 
-            var beam = new List<(int? left, int? right)>(rowCount);
-            beam.AddMany((null, null), rowCount);
+            var beam = new List<(int left, int right)?>(rowCount);
+            beam.AddMany(null, rowCount);
 
             // these are hardcoded based on inspecting the puzzle input
             var left = 4;
@@ -74,17 +74,18 @@ namespace AdventOfCode.Days
             return beam;
         }
 
-        private Point FindShip(List<(int? start, int? end)> beam)
+        private Point FindShip(List<(int start, int end)?> beam)
         {
             var startRow = beam.SelectWithIndex()
-                               .First(r => r.item.end.HasValue && 
-                                           (r.item.end.Value - r.item.start.Value + 1) >= 100)
+                               .Where(r => r.item != null)
+                               .Select(r => (r.index, r.item.Value.start, r.item.Value.end))
+                               .First(r => (r.end - r.start + 1) >= 100)
                                .index;
 
 
             for (var y = startRow; y < beam.Count; y++)
             {
-                for (var x = beam[y].start.Value; x <= beam[y].end.Value - 99; x++)
+                for (var x = beam[y].Value.start; x <= beam[y].Value.end - 99; x++)
                 {
                     if (IsShip(x, y, beam)) return new Point(x, y);
                 }
@@ -93,7 +94,7 @@ namespace AdventOfCode.Days
             throw new Exception("Ship not found");
         }
 
-        private bool IsShip(int x, int y, List<(int? start, int? end)> beam) => beam[y + 99].start.Value <= x;
+        private bool IsShip(int x, int y, List<(int start, int end)?> beam) => beam[y + 99].Value.start <= x;
 
         public class IntCodeVM
         {
