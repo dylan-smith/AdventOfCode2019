@@ -80,8 +80,6 @@ namespace AdventOfCode.Days
             return result;
         }
 
-        
-
         public class IntCodeVM
         {
             private readonly List<long> _instructions;

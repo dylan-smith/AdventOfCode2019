@@ -14,7 +14,7 @@ namespace AdventOfCode.Days
             var shuffles = input.Lines().Select(i => GetShuffleFunction(i)).ToList();
 
             InitializeDeck();
-
+            
             foreach (var shuffle in shuffles)
             {
                 shuffle.shuffle(shuffle.n);
@@ -73,9 +73,86 @@ namespace AdventOfCode.Days
             _deck = new LinkedList<int>(newDeck);
         }
 
+        private long ReverseIncrement(long n, long pos, long len)
+        {
+            if (pos == 0)
+            {
+                return 0;
+            }
+
+            var rounds = new List<long> { 0 };
+
+            for (var r = 1; r < n; r++)
+            {
+                rounds.Add(n - ((len - rounds[r - 1]) % n));
+            }
+
+            var mod = pos % n;
+            var round = rounds.IndexOf(mod);
+
+            var prevCount = (round * len) + pos;
+            var result = ((prevCount - 1) / n) + 1;
+
+            return result;
+        }
+
+        private long ReverseCut(long n, long pos, long len)
+        {
+            return (pos + n + len) % len;
+        }
+
+        private long ReverseNewStack(long pos, long len)
+        {
+            return len - pos - 1;
+        }
+
         public override string PartTwo(string input)
         {
-            throw new NotImplementedException();
+            var lines = input.Lines().ToList();
+            var deckSize = 10007L;
+            var targetPos = 3074L;
+
+            lines.Reverse();
+
+            var curPos = ReverseShuffle(lines, targetPos, deckSize);
+
+            return curPos.ToString();
+        }
+
+        private long ReverseShuffle(List<string> lines, long startPos, long deckSize)
+        {
+            var curPos = startPos;
+
+            foreach (var line in lines)
+            {
+                curPos = ReverseShuffle(line, curPos, deckSize);
+            }
+
+            return curPos;
+        }
+
+        private long ReverseShuffle(string line, long curPos, long deckSize)
+        {
+            if (line.StartsWith("deal with increment"))
+            {
+                var n = int.Parse(line.Words().Last());
+
+                return ReverseIncrement(n, curPos, deckSize);
+            }
+
+            if (line.StartsWith("cut"))
+            {
+                var n = int.Parse(line.Words().Last());
+
+                return ReverseCut(n, curPos, deckSize);
+            }
+
+            if (line.StartsWith("deal into new stack"))
+            {
+                return ReverseNewStack(curPos, deckSize);
+            }
+
+            throw new ArgumentException($"Unrecognized input: {line}");
         }
     }
 }
