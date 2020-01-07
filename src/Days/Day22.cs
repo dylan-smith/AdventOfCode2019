@@ -81,16 +81,8 @@ namespace AdventOfCode.Days
                 return 0;
             }
 
-            //var rounds = new List<long> { 0 };
-
-            //for (var r = 1; r < n; r++)
-            //{
-            //    rounds.Add(n - ((len - rounds[r - 1]) % n));
-            //}
-
             var mod = pos % n;
             var round = _rounds[n].IndexOf(mod);
-            //var round = rounds.IndexOf(mod);
 
             var prevCount = (round * len) + pos;
             var result = ((prevCount - 1) / n) + 1;
@@ -136,10 +128,10 @@ namespace AdventOfCode.Days
                     Log($"{count}");
                 }
 
-                if (seen.Contains(curPos))
-                {
-                    Log("SEEN");
-                }
+                //if (seen.Contains(curPos))
+                //{
+                //    Log("SEEN");
+                //}
 
                 if (curPos == targetPos)
                 {
