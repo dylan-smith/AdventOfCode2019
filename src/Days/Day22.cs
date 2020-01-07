@@ -8,6 +8,7 @@ namespace AdventOfCode.Days
     public class Day22 : BaseDay
     {
         private LinkedList<int> _deck = new LinkedList<int>();
+        private Dictionary<long, List<long>> _rounds = new Dictionary<long, List<long>>();
 
         public override string PartOne(string input)
         {
@@ -80,15 +81,16 @@ namespace AdventOfCode.Days
                 return 0;
             }
 
-            var rounds = new List<long> { 0 };
+            //var rounds = new List<long> { 0 };
 
-            for (var r = 1; r < n; r++)
-            {
-                rounds.Add(n - ((len - rounds[r - 1]) % n));
-            }
+            //for (var r = 1; r < n; r++)
+            //{
+            //    rounds.Add(n - ((len - rounds[r - 1]) % n));
+            //}
 
             var mod = pos % n;
-            var round = rounds.IndexOf(mod);
+            var round = _rounds[n].IndexOf(mod);
+            //var round = rounds.IndexOf(mod);
 
             var prevCount = (round * len) + pos;
             var result = ((prevCount - 1) / n) + 1;
@@ -101,58 +103,142 @@ namespace AdventOfCode.Days
             return (pos + n + len) % len;
         }
 
-        private long ReverseNewStack(long pos, long len)
+        private long ReverseNewStack(long _, long pos, long len)
         {
             return len - pos - 1;
         }
 
         public override string PartTwo(string input)
         {
-            var lines = input.Lines().ToList();
-            var deckSize = 10007L;
-            var targetPos = 3074L;
+            var deckSize = 119315717514047;
+            //var deckSize = 10007;
+            var targetPos = 2020L;
+            //var targetPos = 3074L;
+            var shuffleCount = 101741582076661;
 
-            lines.Reverse();
+            var shuffles = input.Lines().Select(l => GetReverseShuffleFunction(l, deckSize)).ToList();
+            var curPos = targetPos;
+            var count = 0L;
 
-            var curPos = ReverseShuffle(lines, targetPos, deckSize);
+            shuffles.Reverse();
 
-            return curPos.ToString();
+            var seen = new HashSet<long>();
+
+            while (true)
+            {
+                //Log($"{curPos}");
+                seen.Add(curPos);
+                curPos = ReverseShuffle(shuffles, curPos, deckSize);
+                count++;
+
+                if (count % 1000000 == 0)
+                {
+                    Log($"{count}");
+                }
+
+                if (seen.Contains(curPos))
+                {
+                    Log("SEEN");
+                }
+
+                if (curPos == targetPos)
+                {
+                    for (var i = 0; i < shuffleCount % count; i++)
+                    {
+                        curPos = ReverseShuffle(shuffles, curPos, deckSize);
+                    }
+
+                    return curPos.ToString();
+                }
+            }
+
+            throw new Exception("Should never happen");
         }
 
-        private long ReverseShuffle(List<string> lines, long startPos, long deckSize)
+        private long ReverseShuffle(List<(Func<long, long, long, long> func, long n)> shuffles, long startPos, long deckSize)
         {
             var curPos = startPos;
 
-            foreach (var line in lines)
+            foreach (var (func, n) in shuffles)
             {
-                curPos = ReverseShuffle(line, curPos, deckSize);
+                curPos = func(n, curPos, deckSize);
             }
 
             return curPos;
         }
 
-        private long ReverseShuffle(string line, long curPos, long deckSize)
+        //private long ReverseShuffle(List<string> lines, long startPos, long deckSize)
+        //{
+        //    var curPos = startPos;
+
+        //    foreach (var line in lines)
+        //    {
+        //        curPos = ReverseShuffle(line, curPos, deckSize);
+        //    }
+
+        //    return curPos;
+        //}
+
+        //private long ReverseShuffle(string line, long curPos, long deckSize)
+        //{
+        //    if (line.StartsWith("deal with increment"))
+        //    {
+        //        var n = int.Parse(line.Words().Last());
+
+        //        return ReverseIncrement(n, curPos, deckSize);
+        //    }
+
+        //    if (line.StartsWith("cut"))
+        //    {
+        //        var n = int.Parse(line.Words().Last());
+
+        //        return ReverseCut(n, curPos, deckSize);
+        //    }
+
+        //    if (line.StartsWith("deal into new stack"))
+        //    {
+        //        return ReverseNewStack(0, curPos, deckSize);
+        //    }
+
+        //    throw new ArgumentException($"Unrecognized input: {line}");
+        //}
+
+        private (Func<long, long, long, long> func, long n) GetReverseShuffleFunction(string line, long deckSize)
         {
             if (line.StartsWith("deal with increment"))
             {
-                var n = int.Parse(line.Words().Last());
+                var n = long.Parse(line.Words().Last());
+                CreateRoundsLookup(n, deckSize);
 
-                return ReverseIncrement(n, curPos, deckSize);
-            }
-
-            if (line.StartsWith("cut"))
-            {
-                var n = int.Parse(line.Words().Last());
-
-                return ReverseCut(n, curPos, deckSize);
+                return (ReverseIncrement, n);
             }
 
             if (line.StartsWith("deal into new stack"))
             {
-                return ReverseNewStack(curPos, deckSize);
+                return (ReverseNewStack, 0);
+            }
+
+            if (line.StartsWith("cut"))
+            {
+                return (ReverseCut, long.Parse(line.Words().Last()));
             }
 
             throw new ArgumentException($"Unrecognized input: {line}");
+        }
+
+        private void CreateRoundsLookup(long n, long deckSize)
+        {
+            if (!_rounds.ContainsKey(n))
+            {
+                var rounds = new List<long> { 0 };
+
+                for (var r = 1; r < n; r++)
+                {
+                    rounds.Add(n - ((deckSize - rounds[r - 1]) % n));
+                }
+
+                _rounds.Add(n, rounds);
+            }
         }
     }
 }
