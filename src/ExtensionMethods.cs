@@ -980,19 +980,14 @@ namespace AdventOfCode
 
         public static Point Move(this Point point, Direction direction, int distance)
         {
-            switch (direction)
+            return direction switch
             {
-                case Direction.Down:
-                    return point.MoveDown(distance);
-                case Direction.Up:
-                    return point.MoveUp(distance);
-                case Direction.Right:
-                    return point.MoveRight(distance);
-                case Direction.Left:
-                    return point.MoveLeft(distance);
-                default:
-                    throw new ArgumentException();
-            }
+                Direction.Down => point.MoveDown(distance),
+                Direction.Up => point.MoveUp(distance),
+                Direction.Right => point.MoveRight(distance),
+                Direction.Left => point.MoveLeft(distance),
+                _ => throw new ArgumentException(),
+            };
         }
 
         public static Point Move(this Point point, Direction direction)
