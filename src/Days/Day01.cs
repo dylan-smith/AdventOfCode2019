@@ -8,25 +8,20 @@ namespace AdventOfCode.Days
     {
         public override string PartOne(string input)
         {
-            return input.Doubles().Sum(x => Math.Floor(x / 3) - 2).ToString();
+            return input.Doubles()
+                        .Sum(x => CalcFuel(x))
+                        .ToString();
         }
 
         public override string PartTwo(string input)
         {
-            return input.Doubles().Sum(m => CalcFuelForModule(m)).ToString();
+            return input.Doubles()
+                        .Sum(m => RecurseFuel(CalcFuel(m)))
+                        .ToString();
         }
 
-        private double CalcFuelForModule(double m)
-        {
-            var total = 0.0;
+        private double CalcFuel(double m) => Math.Floor(m / 3) - 2;
 
-            while (m > 0)
-            {
-                m = Math.Floor(m / 3) - 2;
-                total += m > 0 ? m : 0;
-            }
-
-            return total;
-        }
+        private double RecurseFuel(double m) => m > 0 ? m + RecurseFuel(CalcFuel(m)) : 0;
     }
 }
