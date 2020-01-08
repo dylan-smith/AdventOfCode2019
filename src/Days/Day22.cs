@@ -84,52 +84,61 @@ namespace AdventOfCode.Days
             return (long)BigInteger.ModPow(n, mod - 2, mod);
         }
 
-        private long ReverseIncrement(long n, long pos, long len)
+        private (BigInteger A, BigInteger B) ReverseIncrement(long n, long len, BigInteger A, BigInteger B)
         {
-            return (InverseMod(n, len) * pos) % len;
+            var inverse = InverseMod(n, len);
+
+            return (A * inverse, B * inverse);
         }
 
-        private long ReverseCut(long n, long pos, long len)
+        private (BigInteger A, BigInteger B) ReverseCut(long n, long len, BigInteger A, BigInteger B)
         {
-            return (pos + n + len) % len;
+            return (A, B + n);
         }
 
-        private long ReverseNewStack(long _, long pos, long len)
+        private (BigInteger A, BigInteger B) ReverseNewStack(long _, long len, BigInteger A, BigInteger B)
         {
-            return len - pos - 1;
+            return (A * -1, B * -1 + len - 1);
         }
 
         public override string PartTwo(string input)
         {
-            //var deckSize = 119315717514047;
-            var deckSize = 10007;
-            //var targetPos = 2020L;
-            var targetPos = 3074L;
+            var deckSize = 119315717514047;
+            var targetPos = 2020L;
             var shuffleCount = 101741582076661;
 
             var shuffles = input.Lines().Select(l => GetReverseShuffleFunction(l, deckSize)).ToList();
-            var curPos = targetPos;
 
             shuffles.Reverse();
 
-            curPos = ReverseShuffle(shuffles, curPos, deckSize);
+            var (a, b) = ReverseShuffle(shuffles, deckSize);
+            var (newa, newb) = RepeatShuffle(a, b, shuffleCount, deckSize);
 
-            return curPos.ToString();
+            return ((newa * targetPos + newb) % deckSize).ToString();
         }
 
-        private long ReverseShuffle(List<(Func<long, long, long, long> func, long n)> shuffles, long startPos, long deckSize)
+        private (BigInteger A, BigInteger B) RepeatShuffle(BigInteger A, BigInteger B, BigInteger count, BigInteger deckSize)
         {
-            var curPos = startPos;
+            var a = BigInteger.ModPow(A, count, deckSize);
+            var b = B * (a - 1) * BigInteger.ModPow(A - 1, deckSize - 2, deckSize);
+
+            return (a, b);
+        }
+
+        private (BigInteger A, BigInteger B) ReverseShuffle(List<(Func<long, long, BigInteger, BigInteger, (BigInteger A, BigInteger B)> func, long n)> shuffles, long deckSize)
+        {
+            var a = (BigInteger)1;
+            var b = (BigInteger)0;
 
             foreach (var (func, n) in shuffles)
             {
-                curPos = func(n, curPos, deckSize);
+                (a, b) = func(n, deckSize, a, b);
             }
 
-            return curPos;
+            return (a, b);
         }
 
-        private (Func<long, long, long, long> func, long n) GetReverseShuffleFunction(string line, long deckSize)
+        private (Func<long, long, BigInteger, BigInteger, (BigInteger A, BigInteger B)> func, long n) GetReverseShuffleFunction(string line, long deckSize)
         {
             if (line.StartsWith("deal with increment"))
             {
