@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace AdventOfCode.Days
 {
     [Day(2019, 22)]
     public class Day22 : BaseDay
     {
+
         private LinkedList<int> _deck = new LinkedList<int>();
         private Dictionary<long, List<long>> _rounds = new Dictionary<long, List<long>>();
 
@@ -15,10 +17,13 @@ namespace AdventOfCode.Days
             var shuffles = input.Lines().Select(i => GetShuffleFunction(i)).ToList();
 
             InitializeDeck();
-            
+
+            Log($"{_deck.SelectWithIndex().Single(x => x.item == 2019).index}");
+
             foreach (var shuffle in shuffles)
             {
                 shuffle.shuffle(shuffle.n);
+                Log($"{_deck.SelectWithIndex().Single(x => x.item == 2019).index}");
             }
 
             return _deck.SelectWithIndex().Single(x => x.item == 2019).index.ToString();
@@ -87,7 +92,19 @@ namespace AdventOfCode.Days
             var prevCount = (round * len) + pos;
             var result = ((prevCount - 1) / n) + 1;
 
+            var invResult = InverseMod(n, len) * pos % len;
+
+            if (result != invResult)
+            {
+                Log("Problem");
+            }
+
             return result;
+        }
+
+        private long InverseMod(long n, long mod)
+        {
+            return (long)BigInteger.ModPow(n, mod - 2, mod);
         }
 
         private long ReverseCut(long n, long pos, long len)
@@ -102,11 +119,22 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            var deckSize = 119315717514047;
-            //var deckSize = 10007;
-            var targetPos = 2020L;
-            //var targetPos = 3074L;
+            //var deckSize = 119315717514047;
+            var deckSize = 10007;
+            //var targetPos = 2020L;
+            var targetPos = 3074L;
             var shuffleCount = 101741582076661;
+
+            //Log($"{ReverseIncrement(7, 0, 10)}");
+            //Log($"{ReverseIncrement(7, 1, 10)}");
+            //Log($"{ReverseIncrement(7, 2, 10)}");
+            //Log($"{ReverseIncrement(7, 3, 10)}");
+            //Log($"{ReverseIncrement(7, 4, 10)}");
+            //Log($"{ReverseIncrement(7, 5, 10)}");
+            //Log($"{ReverseIncrement(7, 6, 10)}");
+            //Log($"{ReverseIncrement(7, 7, 10)}");
+            //Log($"{ReverseIncrement(7, 8, 10)}");
+            //Log($"{ReverseIncrement(7, 9, 10)}");
 
             var shuffles = input.Lines().Select(l => GetReverseShuffleFunction(l, deckSize)).ToList();
             var curPos = targetPos;
@@ -122,6 +150,8 @@ namespace AdventOfCode.Days
                 seen.Add(curPos);
                 curPos = ReverseShuffle(shuffles, curPos, deckSize);
                 count++;
+
+                return curPos.ToString();
 
                 if (count % 1000000 == 0)
                 {
@@ -151,9 +181,12 @@ namespace AdventOfCode.Days
         {
             var curPos = startPos;
 
+            Log($"{curPos}");
+
             foreach (var (func, n) in shuffles)
             {
                 curPos = func(n, curPos, deckSize);
+                Log($"{curPos}");
             }
 
             return curPos;
