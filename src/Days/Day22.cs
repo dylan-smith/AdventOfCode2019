@@ -79,32 +79,14 @@ namespace AdventOfCode.Days
             _deck = new LinkedList<int>(newDeck);
         }
 
-        private long ReverseIncrement(long n, long pos, long len)
-        {
-            if (pos == 0)
-            {
-                return 0;
-            }
-
-            var mod = pos % n;
-            var round = _rounds[n].IndexOf(mod);
-
-            var prevCount = (round * len) + pos;
-            var result = ((prevCount - 1) / n) + 1;
-
-            var invResult = InverseMod(n, len) * pos % len;
-
-            if (result != invResult)
-            {
-                Log("Problem");
-            }
-
-            return result;
-        }
-
         private long InverseMod(long n, long mod)
         {
             return (long)BigInteger.ModPow(n, mod - 2, mod);
+        }
+
+        private long ReverseIncrement(long n, long pos, long len)
+        {
+            return (InverseMod(n, len) * pos) % len;
         }
 
         private long ReverseCut(long n, long pos, long len)
@@ -125,117 +107,33 @@ namespace AdventOfCode.Days
             var targetPos = 3074L;
             var shuffleCount = 101741582076661;
 
-            //Log($"{ReverseIncrement(7, 0, 10)}");
-            //Log($"{ReverseIncrement(7, 1, 10)}");
-            //Log($"{ReverseIncrement(7, 2, 10)}");
-            //Log($"{ReverseIncrement(7, 3, 10)}");
-            //Log($"{ReverseIncrement(7, 4, 10)}");
-            //Log($"{ReverseIncrement(7, 5, 10)}");
-            //Log($"{ReverseIncrement(7, 6, 10)}");
-            //Log($"{ReverseIncrement(7, 7, 10)}");
-            //Log($"{ReverseIncrement(7, 8, 10)}");
-            //Log($"{ReverseIncrement(7, 9, 10)}");
-
             var shuffles = input.Lines().Select(l => GetReverseShuffleFunction(l, deckSize)).ToList();
             var curPos = targetPos;
-            var count = 0L;
 
             shuffles.Reverse();
 
-            var seen = new HashSet<long>();
+            curPos = ReverseShuffle(shuffles, curPos, deckSize);
 
-            while (true)
-            {
-                //Log($"{curPos}");
-                seen.Add(curPos);
-                curPos = ReverseShuffle(shuffles, curPos, deckSize);
-                count++;
-
-                return curPos.ToString();
-
-                if (count % 1000000 == 0)
-                {
-                    Log($"{count}");
-                }
-
-                //if (seen.Contains(curPos))
-                //{
-                //    Log("SEEN");
-                //}
-
-                if (curPos == targetPos)
-                {
-                    for (var i = 0; i < shuffleCount % count; i++)
-                    {
-                        curPos = ReverseShuffle(shuffles, curPos, deckSize);
-                    }
-
-                    return curPos.ToString();
-                }
-            }
-
-            throw new Exception("Should never happen");
+            return curPos.ToString();
         }
 
         private long ReverseShuffle(List<(Func<long, long, long, long> func, long n)> shuffles, long startPos, long deckSize)
         {
             var curPos = startPos;
 
-            Log($"{curPos}");
-
             foreach (var (func, n) in shuffles)
             {
                 curPos = func(n, curPos, deckSize);
-                Log($"{curPos}");
             }
 
             return curPos;
         }
 
-        //private long ReverseShuffle(List<string> lines, long startPos, long deckSize)
-        //{
-        //    var curPos = startPos;
-
-        //    foreach (var line in lines)
-        //    {
-        //        curPos = ReverseShuffle(line, curPos, deckSize);
-        //    }
-
-        //    return curPos;
-        //}
-
-        //private long ReverseShuffle(string line, long curPos, long deckSize)
-        //{
-        //    if (line.StartsWith("deal with increment"))
-        //    {
-        //        var n = int.Parse(line.Words().Last());
-
-        //        return ReverseIncrement(n, curPos, deckSize);
-        //    }
-
-        //    if (line.StartsWith("cut"))
-        //    {
-        //        var n = int.Parse(line.Words().Last());
-
-        //        return ReverseCut(n, curPos, deckSize);
-        //    }
-
-        //    if (line.StartsWith("deal into new stack"))
-        //    {
-        //        return ReverseNewStack(0, curPos, deckSize);
-        //    }
-
-        //    throw new ArgumentException($"Unrecognized input: {line}");
-        //}
-
         private (Func<long, long, long, long> func, long n) GetReverseShuffleFunction(string line, long deckSize)
         {
             if (line.StartsWith("deal with increment"))
             {
-                var n = long.Parse(line.Words().Last());
-                CreateRoundsLookup(n, deckSize);
-
-                return (ReverseIncrement, n);
+                return (ReverseIncrement, long.Parse(line.Words().Last()));
             }
 
             if (line.StartsWith("deal into new stack"))
@@ -249,21 +147,6 @@ namespace AdventOfCode.Days
             }
 
             throw new ArgumentException($"Unrecognized input: {line}");
-        }
-
-        private void CreateRoundsLookup(long n, long deckSize)
-        {
-            if (!_rounds.ContainsKey(n))
-            {
-                var rounds = new List<long> { 0 };
-
-                for (var r = 1; r < n; r++)
-                {
-                    rounds.Add(n - ((deckSize - rounds[r - 1]) % n));
-                }
-
-                _rounds.Add(n, rounds);
-            }
         }
     }
 }
