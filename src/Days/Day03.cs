@@ -47,10 +47,7 @@ namespace AdventOfCode.Days
                     pos = pos.Move(dir);
                     steps++;
 
-                    if (!result.ContainsKey(pos))
-                    {
-                        result.Add(pos, steps);
-                    }
+                    result.TryAdd(pos, steps);
                 }
             }
 
