@@ -18,20 +18,37 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            _vms = InitializeVMs(input).ToList();
+            var vms = InitializeVMs(input).ToList();
 
-            while (!_natHasPacket)
+            while (true)
             {
-                _vms.ForEach(vm => vm.Run());
-            }
+                foreach (var vm in vms)
+                {
+                    var outputs = vm.Run();
 
-            return _nat.y.ToString();
+                    for (var i = 0; i < outputs.Count; i += 3)
+                    {
+                        var address = (int)outputs[i];
+                        var x = outputs[i + 1];
+                        var y = outputs[i + 2];
+
+                        if (address == 255)
+                        {
+                            return y.ToString();
+                        }
+                        else
+                        {
+                            vms[address].AddInput(x);
+                            vms[address].AddInput(y);
+                        }
+                    }
+                }
+            }
         }
 
         public override string PartTwo(string input)
         {
             _vms = InitializeVMs(input).ToList();
-            
 
             while (true)
             {
@@ -56,11 +73,10 @@ namespace AdventOfCode.Days
         {
             foreach (var i in Enumerable.Range(0, 50))
             {
-                yield return new IntCodeVM(input)
-                {
-                    OutputFunction = OutputAddress,
-                    InputFunction = InputAddress
-                };
+                var vm = new IntCodeVM(input);
+                vm.AddInput(i);
+
+                yield return vm;
             }
         }
 
@@ -282,8 +298,16 @@ namespace AdventOfCode.Days
                 }
                 else
                 {
-                    SetMemory(a, _inputs[0]);
-                    _inputs.RemoveAt(0);
+                    if (_inputs.Any())
+                    {
+                        SetMemory(a, _inputs[0]);
+                        _inputs.RemoveAt(0);
+                    }
+                    else
+                    {
+                        SetMemory(a, -1);
+                        Halt();
+                    }
                 }
                 return _ip += 2;
             }
