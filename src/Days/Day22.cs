@@ -8,75 +8,53 @@ namespace AdventOfCode.Days
     [Day(2019, 22)]
     public class Day22 : BaseDay
     {
-
-        private LinkedList<int> _deck = new LinkedList<int>();
-        private Dictionary<long, List<long>> _rounds = new Dictionary<long, List<long>>();
-
         public override string PartOne(string input)
         {
             var shuffles = input.Lines().Select(i => GetShuffleFunction(i)).ToList();
+            var pos = 2019;
+            var deckSize = 10007;
 
-            InitializeDeck();
-
-            Log($"{_deck.SelectWithIndex().Single(x => x.item == 2019).index}");
-
-            foreach (var shuffle in shuffles)
+            foreach (var (shuffle, n) in shuffles)
             {
-                shuffle.shuffle(shuffle.n);
-                Log($"{_deck.SelectWithIndex().Single(x => x.item == 2019).index}");
+                pos = shuffle(pos, deckSize, n);
             }
 
-            return _deck.SelectWithIndex().Single(x => x.item == 2019).index.ToString();
+            return pos.ToString();
         }
 
-        private void InitializeDeck()
+        private (Func<int, int, int, int> shuffle, int n) GetShuffleFunction(string line)
         {
-            for (var i = 0; i < 10007; i++)
+            if (line.StartsWith("deal with increment"))
             {
-                _deck.AddLast(i);
-            }
-        }
-
-        private (Action<int> shuffle, int n) GetShuffleFunction(string i)
-        {
-            if (i.StartsWith("deal with"))
-            {
-                return (DealIncrement, int.Parse(i.Words().Last()));
+                return (DealIncrement, int.Parse(line.Words().Last()));
             }
 
-            if (i.StartsWith("deal into"))
+            if (line.StartsWith("deal into new stack"))
             {
                 return (DealNewStack, 0);
             }
 
-            return (CutDeck, int.Parse(i.Words().Last()));
-        }
-
-        private void CutDeck(int n)
-        {
-            _deck.RotateLeft(n);
-        }
-
-        private void DealNewStack(int _)
-        {
-            _deck = new LinkedList<int>(_deck.Reverse());
-        }
-
-        private void DealIncrement(int n)
-        {
-            var newDeck = new int[10007];
-
-            var node = _deck.First;
-            var pos = 0;
-
-            while (node != null)
+            if (line.StartsWith("cut"))
             {
-                newDeck[pos] = node.Value;
-                pos = (pos + n) % 10007;
-                node = node.Next;
+                return (CutDeck, int.Parse(line.Words().Last()));
             }
 
-            _deck = new LinkedList<int>(newDeck);
+            throw new ArgumentException($"Unrecognized input: {line}");
+        }
+
+        private int CutDeck(int pos, int deckSize, int n)
+        {
+            return (pos - n + deckSize) % deckSize;
+        }
+
+        private int DealNewStack(int pos, int deckSize, int _)
+        {
+            return deckSize - pos - 1;
+        }
+
+        private int DealIncrement(int pos, int deckSize, int n)
+        {
+            return (pos * n) % deckSize;
         }
 
         private long InverseMod(long n, long mod)
