@@ -14,14 +14,20 @@ namespace AdventOfCode.Days
 
         public override string PartOne(string input)
         {
-            foreach (var i in Enumerable.Range(0, 50))
+            _vms = InitializeVMs(input).ToList();
+
+            while (!_natHasPacket)
             {
-                _vms.Add(new IntCodeVM(input)
-                {
-                    OutputFunction = OutputAddress,
-                    InputFunction = InputAddress
-                });
+                _vms.ForEach(vm => vm.Run());
             }
+
+            return _nat.y.ToString();
+        }
+
+        public override string PartTwo(string input)
+        {
+            _vms = InitializeVMs(input).ToList();
+            
 
             while (_result == 0)
             {
@@ -43,6 +49,18 @@ namespace AdventOfCode.Days
             }
 
             throw new Exception();
+        }
+
+        private IEnumerable<IntCodeVM> InitializeVMs(string input)
+        {
+            foreach (var i in Enumerable.Range(0, 50))
+            {
+                yield return new IntCodeVM(input)
+                {
+                    OutputFunction = OutputAddress,
+                    InputFunction = InputAddress
+                };
+            }
         }
 
         private long InputAddress(IntCodeVM receiver)
@@ -150,10 +168,7 @@ namespace AdventOfCode.Days
             sender.OutputFunction = OutputAddress;
         }
 
-        public override string PartTwo(string input)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public class IntCodeVM
         {
