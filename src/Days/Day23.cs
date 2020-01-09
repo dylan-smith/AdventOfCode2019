@@ -8,9 +8,13 @@ namespace AdventOfCode.Days
     public class Day23 : BaseDay
     {
         private List<IntCodeVM> _vms = new List<IntCodeVM>();
-        private long _result = 0;
         private long _previousNatY = 0;
         private bool _natHasPacket = false;
+        private long _outputAddress;
+        private long _outputX;
+        private long _inputY;
+        private List<(long address, long x, long y)> _traffic = new List<(long address, long x, long y)>();
+        private (long x, long y) _nat;
 
         public override string PartOne(string input)
         {
@@ -29,26 +33,23 @@ namespace AdventOfCode.Days
             _vms = InitializeVMs(input).ToList();
             
 
-            while (_result == 0)
+            while (true)
             {
                 _vms.ForEach(vm => vm.Run());
 
                 if (!_traffic.Any() && _natHasPacket)
                 {
-                    Log($"NAT sending packet [{_nat.x}, {_nat.y}]");
                     _traffic.Add((0, _nat.x, _nat.y));
                     _natHasPacket = false;
 
                     if (_nat.y == _previousNatY)
                     {
-                        return _previousNatY.ToString();
+                        return _nat.y.ToString();
                     }
 
                     _previousNatY = _nat.y;
                 }
             }
-
-            throw new Exception();
         }
 
         private IEnumerable<IntCodeVM> InitializeVMs(string input)
@@ -66,13 +67,8 @@ namespace AdventOfCode.Days
         private long InputAddress(IntCodeVM receiver)
         {
             receiver.InputFunction = InputX;
-
-            Log($"Setting VM Address [{_vms.IndexOf(receiver)}]");
-
             return _vms.IndexOf(receiver);
         }
-
-        private long _inputY;
 
         private long InputX(IntCodeVM receiver)
         {
@@ -82,7 +78,6 @@ namespace AdventOfCode.Days
 
             if (packet != default)
             {
-                Log($"VM [{address}] receiving packet. X = {packet.x}");
                 _traffic.Remove(packet);
 
                 _inputY = packet.y;
@@ -91,7 +86,6 @@ namespace AdventOfCode.Days
             }
             else
             {
-                Log($"VM [{address}] receiving NULL packet");
                 receiver.Halt();
                 return -1;
             }
@@ -100,21 +94,12 @@ namespace AdventOfCode.Days
         private long InputY(IntCodeVM receiver)
         {
             receiver.InputFunction = InputX;
-            Log($"Receiving packet. Y = {_inputY}");
-
             return _inputY;
         }
-
-        private long _outputAddress;
-        private long _outputX;
-
-        private List<(long address, long x, long y)> _traffic = new List<(long address, long x, long y)>();
-        private (long x, long y) _nat;
 
         private void OutputAddress(IntCodeVM sender, long address)
         {
             _outputAddress = address;
-            Log($"Sending packet to [{address}]");
 
             if (address == 255)
             {
@@ -139,36 +124,17 @@ namespace AdventOfCode.Days
             sender.OutputFunction = OutputAddress;
         }
 
-        private void OutputResult(IntCodeVM sender, long result)
-        {
-            if (_result == 0)
-            {
-                _result = result;
-            }
-            else
-            {
-                _result = result;
-                sender.Halt();
-            }
-        }
-
         private void OutputX(IntCodeVM sender, long x)
         {
             _outputX = x;
-            Log($"Sending X = {x}");
-
             sender.OutputFunction = OutputY;
         }
 
         private void OutputY(IntCodeVM sender, long y)
         {
             _traffic.Add((_outputAddress, _outputX, y));
-            Log($"Sending Y = {y}");
-
             sender.OutputFunction = OutputAddress;
         }
-
-        
 
         public class IntCodeVM
         {
