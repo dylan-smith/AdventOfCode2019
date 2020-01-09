@@ -56,8 +56,6 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            //var emptyMap = ".....\n.....\n..?..\n.....\n.....\n";
-
             var map = new Dictionary<int, HashSet<Point>>();
 
             map.Add(0, new HashSet<Point>());
