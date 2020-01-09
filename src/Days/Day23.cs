@@ -13,26 +13,11 @@ namespace AdventOfCode.Days
 
             while (true)
             {
-                foreach (var vm in vms)
+                var nat = RunNetwork(vms);
+
+                if (nat.HasValue)
                 {
-                    var outputs = vm.Run();
-
-                    for (var i = 0; i < outputs.Count; i += 3)
-                    {
-                        var address = (int)outputs[i];
-                        var x = outputs[i + 1];
-                        var y = outputs[i + 2];
-
-                        if (address == 255)
-                        {
-                            return y.ToString();
-                        }
-                        else
-                        {
-                            vms[address].AddInput(x);
-                            vms[address].AddInput(y);
-                        }
-                    }
+                    return nat.Value.y.ToString();
                 }
             }
         }
@@ -40,35 +25,13 @@ namespace AdventOfCode.Days
         public override string PartTwo(string input)
         {
             var vms = InitializeVMs(input).ToList();
-            (long x, long y)? nat = null;
             (long x, long y)? previousNat = null;
 
             while (true)
             {
-                foreach (var vm in vms)
-                {
-                    vm.Outputs.Clear();
-                    var outputs = vm.Run();
+                var nat = RunNetwork(vms);
 
-                    for (var i = 0; i < outputs.Count; i += 3)
-                    {
-                        var address = (int)outputs[i];
-                        var x = outputs[i + 1];
-                        var y = outputs[i + 2];
-
-                        if (address == 255)
-                        {
-                            nat = (x, y);
-                        }
-                        else
-                        {
-                            vms[address].AddInput(x);
-                            vms[address].AddInput(y);
-                        }
-                    }
-                }
-
-                if (!vms.Any(vm => vm.Inputs.Any()) && nat.HasValue)
+                if (IsNetworkIdle(vms, nat))
                 {
                     vms[0].AddInput(nat.Value.x);
                     vms[0].AddInput(nat.Value.y);
@@ -81,6 +44,38 @@ namespace AdventOfCode.Days
                     previousNat = nat;
                 }
             }
+        }
+
+        private bool IsNetworkIdle(List<IntCodeVM> vms, (long x, long y)? nat) => !vms.Any(vm => vm.Inputs.Any()) && nat.HasValue;
+
+        private (long x, long y)? RunNetwork(List<IntCodeVM> vms)
+        {
+            (long x, long y)? nat = null;
+
+            foreach (var vm in vms)
+            {
+                vm.Outputs.Clear();
+                var outputs = vm.Run();
+
+                for (var i = 0; i < outputs.Count; i += 3)
+                {
+                    var address = (int)outputs[i];
+                    var x = outputs[i + 1];
+                    var y = outputs[i + 2];
+
+                    if (address == 255)
+                    {
+                        nat = (x, y);
+                    }
+                    else
+                    {
+                        vms[address].AddInput(x);
+                        vms[address].AddInput(y);
+                    }
+                }
+            }
+
+            return nat;
         }
 
         private IEnumerable<IntCodeVM> InitializeVMs(string input)
