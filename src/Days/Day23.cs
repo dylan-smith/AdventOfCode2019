@@ -7,15 +7,6 @@ namespace AdventOfCode.Days
     [Day(2019, 23)]
     public class Day23 : BaseDay
     {
-        private List<IntCodeVM> _vms = new List<IntCodeVM>();
-        private long _previousNatY = 0;
-        private bool _natHasPacket = false;
-        private long _outputAddress;
-        private long _outputX;
-        private long _inputY;
-        private List<(long address, long x, long y)> _traffic = new List<(long address, long x, long y)>();
-        private (long x, long y) _nat;
-
         public override string PartOne(string input)
         {
             var vms = InitializeVMs(input).ToList();
@@ -48,23 +39,46 @@ namespace AdventOfCode.Days
 
         public override string PartTwo(string input)
         {
-            _vms = InitializeVMs(input).ToList();
+            var vms = InitializeVMs(input).ToList();
+            (long x, long y)? nat = null;
+            (long x, long y)? previousNat = null;
 
             while (true)
             {
-                _vms.ForEach(vm => vm.Run());
-
-                if (!_traffic.Any() && _natHasPacket)
+                foreach (var vm in vms)
                 {
-                    _traffic.Add((0, _nat.x, _nat.y));
-                    _natHasPacket = false;
+                    vm.Outputs.Clear();
+                    var outputs = vm.Run();
 
-                    if (_nat.y == _previousNatY)
+                    for (var i = 0; i < outputs.Count; i += 3)
                     {
-                        return _nat.y.ToString();
+                        var address = (int)outputs[i];
+                        var x = outputs[i + 1];
+                        var y = outputs[i + 2];
+
+                        if (address == 255)
+                        {
+                            nat = (x, y);
+                        }
+                        else
+                        {
+                            vms[address].AddInput(x);
+                            vms[address].AddInput(y);
+                        }
+                    }
+                }
+
+                if (!vms.Any(vm => vm.Inputs.Any()) && nat.HasValue)
+                {
+                    vms[0].AddInput(nat.Value.x);
+                    vms[0].AddInput(nat.Value.y);
+
+                    if (previousNat.HasValue && previousNat.Value.y == nat.Value.y)
+                    {
+                        return nat.Value.y.ToString();
                     }
 
-                    _previousNatY = _nat.y;
+                    previousNat = nat;
                 }
             }
         }
@@ -80,90 +94,18 @@ namespace AdventOfCode.Days
             }
         }
 
-        private long InputAddress(IntCodeVM receiver)
-        {
-            receiver.InputFunction = InputX;
-            return _vms.IndexOf(receiver);
-        }
-
-        private long InputX(IntCodeVM receiver)
-        {
-            var address = _vms.IndexOf(receiver);
-
-            var packet = _traffic.FirstOrDefault(t => t.address == address);
-
-            if (packet != default)
-            {
-                _traffic.Remove(packet);
-
-                _inputY = packet.y;
-                receiver.InputFunction = InputY;
-                return packet.x;
-            }
-            else
-            {
-                receiver.Halt();
-                return -1;
-            }
-        }
-
-        private long InputY(IntCodeVM receiver)
-        {
-            receiver.InputFunction = InputX;
-            return _inputY;
-        }
-
-        private void OutputAddress(IntCodeVM sender, long address)
-        {
-            _outputAddress = address;
-
-            if (address == 255)
-            {
-                sender.OutputFunction = OutputNatX;
-            }
-            else
-            {
-                sender.OutputFunction = OutputX;
-            }
-        }
-
-        private void OutputNatX(IntCodeVM sender, long x)
-        {
-            _nat = (x, 0);
-            sender.OutputFunction = OutputNatY;
-        }
-
-        private void OutputNatY(IntCodeVM sender, long y)
-        {
-            _nat = (_nat.x, y);
-            _natHasPacket = true;
-            sender.OutputFunction = OutputAddress;
-        }
-
-        private void OutputX(IntCodeVM sender, long x)
-        {
-            _outputX = x;
-            sender.OutputFunction = OutputY;
-        }
-
-        private void OutputY(IntCodeVM sender, long y)
-        {
-            _traffic.Add((_outputAddress, _outputX, y));
-            sender.OutputFunction = OutputAddress;
-        }
-
         public class IntCodeVM
         {
             private readonly List<long> _instructions;
             private List<long> _memory;
             private Dictionary<long, long> _sparseMemory;
             private int _ip = 0;
-            private List<long> _inputs = new List<long>();
-            private List<long> _outputs = new List<long>();
+            public readonly List<long> Inputs = new List<long>();
+            public readonly List<long> Outputs = new List<long>();
             private long _relativeBase = 0;
             public Func<IntCodeVM, long> InputFunction { get; set; }
             public Action<IntCodeVM, long> OutputFunction { get; set; }
-            public bool Halted = false;
+            private bool _halted = false;
             private bool _isSparseMemory;
             private int _memorySize;
 
@@ -192,15 +134,15 @@ namespace AdventOfCode.Days
                     _memory.AddMany(0, _memorySize);
                 }
 
-                _inputs = new List<long>();
-                _outputs = new List<long>();
+                Inputs.Clear();
+                Outputs.Clear();
 
                 _ip = 0;
             }
 
-            public void AddInput(long input) => _inputs.Add(input);
+            public void AddInput(long input) => Inputs.Add(input);
 
-            public void AddInputs(IEnumerable<long> inputs) => _inputs.AddRange(inputs);
+            public void AddInputs(IEnumerable<long> inputs) => Inputs.AddRange(inputs);
 
             public void SetMemory(int address, long value)
             {
@@ -239,9 +181,9 @@ namespace AdventOfCode.Days
             public List<long> Run(params long[] inputs)
             {
                 AddInputs(inputs);
-                Halted = false;
+                _halted = false;
 
-                while (GetMemory(_ip) != 99 && !Halted)
+                while (GetMemory(_ip) != 99 && !_halted)
                 {
                     var (op, p1, p2, p3) = ParseOpCode(GetMemory(_ip));
 
@@ -260,12 +202,12 @@ namespace AdventOfCode.Days
                     };
                 }
 
-                return _outputs;
+                return Outputs;
             }
 
             public void Halt()
             {
-                Halted = true;
+                _halted = true;
             }
 
             private int Add(int p1, int p2, int p3)
@@ -298,10 +240,10 @@ namespace AdventOfCode.Days
                 }
                 else
                 {
-                    if (_inputs.Any())
+                    if (Inputs.Any())
                     {
-                        SetMemory(a, _inputs[0]);
-                        _inputs.RemoveAt(0);
+                        SetMemory(a, Inputs[0]);
+                        Inputs.RemoveAt(0);
                     }
                     else
                     {
@@ -322,7 +264,7 @@ namespace AdventOfCode.Days
                 }
                 else
                 {
-                    _outputs.Add(a);
+                    Outputs.Add(a);
                 }
 
                 return _ip += 2;
