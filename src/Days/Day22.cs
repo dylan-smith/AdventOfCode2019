@@ -27,10 +27,9 @@ namespace AdventOfCode.Days
             BigInteger a = 1;
             BigInteger b = 0;
 
-            foreach (var line in input.Lines().Reverse())
-            {
-                (a, b) = ReverseShuffle(line, deckSize, a, b);
-            }
+            (a, b) = input.Lines()
+                          .Reverse()
+                          .Aggregate((a, b), (constants, line) => ReverseShuffle(line, deckSize, constants.a, constants.b));
 
             (a, b) = RepeatShuffle(a, b, shuffleCount, deckSize);
 
