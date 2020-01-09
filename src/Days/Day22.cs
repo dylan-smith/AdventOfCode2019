@@ -13,10 +13,7 @@ namespace AdventOfCode.Days
             var pos = 2019;
             var deckSize = 10007;
 
-            foreach (var line in input.Lines())
-            {
-                pos = Shuffle(line, pos, deckSize);
-            }
+            pos = input.Lines().Aggregate(pos, (p, line) => Shuffle(line, p, deckSize));
 
             return pos.ToString();
         }
