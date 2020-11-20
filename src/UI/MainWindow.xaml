@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:AdventOfCode"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        WindowState="Maximized"
-        Title="Advent Of Code" Height="470" Width="820">
+        WindowState="Normal"
+        Title="Advent Of Code" Height="600" Width="1000">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -21,7 +22,13 @@
         <Button Command="{Binding RunPartOneCommand}" Content="Run Part One" Grid.Row="0" HorizontalAlignment="Left" Margin="180,10,0,0" VerticalAlignment="Top" Height="22" Width="100"/>
         <Button Command="{Binding RunPartTwoCommand}" Content="Run Part Two" Grid.Row="0" HorizontalAlignment="Left" Margin="285,10,0,0" VerticalAlignment="Top" Height="22" Width="100"/>
 
-        <Grid Grid.Row="1">
+        <TextBox Text="{Binding TestName, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Grid.Row="0" Width="200" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="390,10,0,0" VerticalContentAlignment="Center" />
+        <Button Command="{Binding CreateTestCommand}" Content="Create Test" Grid.Row="0" HorizontalAlignment="Left" Margin="595,10,0,0" VerticalAlignment="Top" Height="22" Width="100"/>
+
+        <Button Command="{Binding RunAllTestsCommand}" Content="Run All Tests For All Days" Grid.Row="1" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="22" Width="165"/>
+        <Button Command="{Binding RunTodayTestsCommand}" Content="Run All Tests For This Day" Grid.Row="1" HorizontalAlignment="Left" Margin="180,10,0,0" VerticalAlignment="Top" Height="22" Width="205"/>
+
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="5" />
